@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 	'django_redis',
     'huey.contrib.djhuey',
+    'ckeditor',
 	'common',
+    'lessons',
 	
 ]
 

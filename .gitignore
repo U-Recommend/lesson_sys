@@ -50,7 +50,7 @@ logs/
 *.egg
 *.manifest
 *.spec
-# static/
+# static/s
 
 # Installer logs
 pip-log.txt

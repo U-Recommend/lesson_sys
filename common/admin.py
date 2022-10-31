@@ -24,7 +24,7 @@ class MyUserChangeForm(UserChangeForm):
 class MyUserAdmin(UserAdmin):
     list_display = ("name", "username", "is_active")
     list_filter = ('is_staff', 'is_superuser', 'is_active')
-    search_fields = ("name", )
+    search_fields = ("name",)
     form = MyUserChangeForm
     add_form = MyUserCreationForm
     filter_horizontal = ()
@@ -35,7 +35,7 @@ class MyUserAdmin(UserAdmin):
         user = request.user
         if user.is_superuser:
             self.fieldsets = ((None, {'fields': ('username', 'password',)}),
-                              (_('Personal info'), {'fields': ('name', 'role', 'department', 'parent')}),
+                              (_('Personal info'), {'fields': ('name',)}),
                               (_('Permissions'), {'fields': ('is_active', 'is_superuser')}),
                               (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
                               )
@@ -45,7 +45,6 @@ class MyUserAdmin(UserAdmin):
                                           }),
                                   )
         return super(MyUserAdmin, self).changelist_view(request, extra_context)
-
 
     def save_model(self, request, obj, form, change):
         obj.is_staff = 1
@@ -59,7 +58,7 @@ class MyUserAdmin(UserAdmin):
 
     def has_module_permission(self, request):
         if request.user.is_superuser:
-	         return True
+            return True
         return False
 
     def has_delete_permission(self, request, obj=None):
@@ -69,7 +68,7 @@ class MyUserAdmin(UserAdmin):
 
 
 from django.contrib.auth.models import Group
+
 admin.site.unregister(Group)
 
 admin.site.register(User, MyUserAdmin)
-
