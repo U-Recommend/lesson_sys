@@ -1,0 +1,74 @@
+.head {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background: url(/static/img/testHead.jpg) no-repeat;
+	background-size: cover;
+	height: 13rem;
+	color: white;
+	overflow: hidden;
+	font-size: 0.875rem;
+}
+
+.head-btn{
+ text-align: right;
+ margin-right: 10px;
+ font-size: 12px;
+}
+
+.user-logo {
+	width: 6.75rem;
+	height: 6.75rem;
+	object-fit: cover;
+	border-radius: 50%;
+}
+
+.head .title {
+	font-size: 1.25rem;
+	margin-top: 0.625rem;
+}
+
+.weui-cell__hd p {
+	display: block;
+	text-overflow: ellipsis;
+	color: #8a8d91;
+}
+
+.weui-cells__group_form .weui-cell {
+	font-size: 15px;
+	padding: 12px 20px;
+}
+
+.footer {
+	position: fixed;
+	bottom: 0;
+	width: 100%;
+	z-index: 99;
+	padding: 10px;
+	box-sizing: border-box;
+	padding-bottom: calc(5px + constant(safe-area-inset-bottom));
+	padding-bottom: calc(5px + env(safe-area-inset-bottom));
+}
+
+.footer a {
+	width: 100%;
+}
+.qr-code{
+	height: 15rem;
+	margin-bottom: 1.25rem;
+}
+.qr-conent{
+	width: 250px;
+	background: none;
+	border-radius: 0;
+	color: white;
+	text-align: center;
+	font-size: 0.875rem;
+}
+.weui-icon-cancel{
+	margin-top: 1rem;
+	width: 3rem;
+	height: 3rem;
+	color: white;
+}
