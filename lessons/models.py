@@ -14,6 +14,18 @@ class LessonType(MainModel):
         verbose_name_plural = verbose_name
 
 
+class LessonTypeUser(MainModel):
+    lesson_type = models.ForeignKey(LessonType, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return self.user.name
+
+    class Meta:
+        verbose_name = "学生课程类型"
+        verbose_name_plural = verbose_name
+
+
 class Lesson(MainModel):
     lesson_type = models.ForeignKey(LessonType, on_delete=models.SET_NULL, null=True, blank=True)
     title = models.CharField("名称", max_length=100, null=True, blank=True)
@@ -60,10 +72,23 @@ class Homework(MainModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     homework_subject = models.ForeignKey(HomeworkSubject, on_delete=models.CASCADE, null=True, blank=True)
     code = models.TextField('作业内容', null=True, blank=True)
+    comment = RichTextField('老师评语', null=True, blank=True)
 
     def __str__(self):
         return self.user.name
 
     class Meta:
         verbose_name = "作业"
+        verbose_name_plural = verbose_name
+
+
+class LessonUser(MainModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return self.user.name
+
+    class Meta:
+        verbose_name = "考勤"
         verbose_name_plural = verbose_name

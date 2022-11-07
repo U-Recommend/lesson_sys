@@ -122,7 +122,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -218,6 +218,9 @@ SIMPLEUI_HOME_INFO = False
 
 # 最近动作
 SIMPLEUI_HOME_ACTION = True
+
+SIMPLEUI_STATIC_OFFLINE = True
+
 
 # >>>>>>>> HUEY 设置 <<<<<<<<<
 HUEY = {

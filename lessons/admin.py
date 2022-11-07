@@ -1,6 +1,7 @@
+from django.utils.html import format_html, mark_safe
 from django.contrib import admin
 from common.utils import logger
-from lessons.models import LessonType, Lesson, Homework, LessonHomework, HomeworkSubject
+from lessons.models import LessonType, LessonTypeUser, Lesson, Homework, LessonHomework, HomeworkSubject, LessonUser
 
 
 class LessonTypeAdmin(admin.ModelAdmin):
@@ -13,12 +14,22 @@ class LessonTypeAdmin(admin.ModelAdmin):
         return False
 
 
+class LessonTypeUserAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'lesson_type')
+    exclude = ('is_deleted',)
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        return False
+
+
 class LessonAdmin(admin.ModelAdmin):
     list_display = ('lesson_type_name', 'title_name')
     list_display_links = ('title_name',)
     exclude = ('is_deleted',)
-    sortable_by = ()
-    # list_filter = ('lesson_type',)
+
+    # sortable_by = ()
 
     def lesson_type_name(self, obj):
         return obj.lesson_type
@@ -30,28 +41,34 @@ class LessonAdmin(admin.ModelAdmin):
 
     title_name.short_description = "课程"
 
-    def change_view(self, request, object_id, form_url="", extra_context=None):
-        if request.user.is_superuser:
-            return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url,
-                                                        extra_context=extra_context)
-        else:
-            self.change_form_template = "lessons/change_form.html"
-            self.readonly_fields = ('lesson_type',)
-            self.exclude = ('is_deleted', 'sort')
+    # def get_list_filter(self, request):
+    #
+    #     res = super(LessonAdmin, self).get_list_filter(request)
+    #     logger.info(res)
+    #     return res
 
-            extra_context = extra_context or {}
-            lesson = Lesson.objects.filter(id=object_id).first()
-            extra_context['lesson'] = lesson
-            h = HomeworkSubject.objects.filter(lessonhomework__lesson_id=object_id).first()
-            data = {'id': h.id, 'title': h.title, 'content': h.content, 'default_code': h.default_code}
-            homework = Homework.objects.filter(user_id=request.user.id, is_deleted=0,
-                                               homework_subject_id=h.id).first()
-            default_code = homework.code if homework and homework.code else data.get('default_code')
-            logger.info(default_code)
-            data['default_code'] = default_code
-            extra_context['homework_subject'] = data
-            return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url,
-                                                        extra_context=extra_context)
+    # def change_view(self, request, object_id, form_url="", extra_context=None):
+    #     if request.user.is_superuser:
+    #         return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url,
+    #                                                     extra_context=extra_context)
+    #     else:
+    #         self.change_form_template = "lessons/change_form.html"
+    #
+    #         extra_context = extra_context or {}
+    #         lesson = Lesson.objects.filter(id=object_id).first()
+    #         extra_context['lesson'] = lesson
+    #         h = HomeworkSubject.objects.filter(lessonhomework__lesson_id=object_id).first()
+    #         data = {'id': h.id, 'title': h.title, 'content': h.content, 'default_code': h.default_code}
+    #         homework = Homework.objects.filter(user_id=request.user.id, is_deleted=0,
+    #                                            homework_subject_id=h.id).first()
+    #         default_code = format_html(homework.code) if homework and homework.code else format_html(
+    #             data.get('default_code', ''))
+    #         default_code.replace("'", "\'").replace('"', '\"')
+    #         logger.info(default_code)
+    #         data['default_code'] = default_code
+    #         extra_context['homework_subject'] = data
+    #         return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url,
+    #                                                     extra_context=extra_context)
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -105,7 +122,7 @@ class LessonHomeworkAdmin(admin.ModelAdmin):
 
 
 class HomeworkAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'homework_subject', 'created')
+    list_display = ('id', 'user', 'homework_subject', 'comment', 'created')
     exclude = ('is_deleted',)
     sortable_by = ()
 
@@ -125,25 +142,75 @@ class HomeworkAdmin(admin.ModelAdmin):
 
     created_name.short_description = "保存时间"
 
-    def changelist_view(self, request, extra_context=None):
-        if not request.user.is_superuser:
-            self.list_display = ('homework_title', 'created_name')
-            self.exclude = ('is_deleted', 'user')
-        return super(HomeworkAdmin, self).changelist_view(request, extra_context=extra_context)
+    # def changelist_view(self, request, extra_context=None):
+    #     if not request.user.is_superuser:
+    #         self.list_display = ('homework_title', 'created_name')
+    #         self.exclude = ('is_deleted', 'user')
+    #     return super(HomeworkAdmin, self).changelist_view(request, extra_context=extra_context)
+    #
+    # def change_view(self, request, object_id, form_url="", extra_context=None):
+    #     if request.user.is_superuser:
+    #         return super(HomeworkAdmin, self).change_view(request, object_id, form_url=form_url,
+    #                                                       extra_context=extra_context)
+    #     else:
+    #         self.change_form_template = "homework/change_form.html"
+    #         extra_context = extra_context or {}
+    #         homework = Homework.objects.filter(id=object_id).first()
+    #         subject = homework.homework_subject if homework else None
+    #         extra_context['homework_subject'] = subject
+    #         code = format_html(homework.code) if homework else ""
+    #         code.replace("'", "\'").replace('"', '\"')
+    #         extra_context['code'] = code
+    #         logger.info(extra_context)
+    #         extra_context['comment'] = format_html(homework.comment) or ""
+    #         return super(HomeworkAdmin, self).change_view(request, object_id, form_url=form_url,
+    #                                                       extra_context=extra_context)
 
-    def change_view(self, request, object_id, form_url="", extra_context=None):
+    def has_add_permission(self, request):
         if request.user.is_superuser:
-            return super(HomeworkAdmin, self).change_view(request, object_id, form_url=form_url,
-                                                          extra_context=extra_context)
-        else:
-            self.change_form_template = "homework/change_form.html"
-            extra_context = extra_context or {}
-            homework = Homework.objects.filter(id=object_id).first()
-            subject = homework.homework_subject if homework else None
-            extra_context['homework_subject'] = subject
-            extra_context['code'] = homework.code if homework else ""
-            return super(HomeworkAdmin, self).change_view(request, object_id, form_url=form_url,
-                                                          extra_context=extra_context)
+            return True
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        return False
+
+
+class LessonUserAdmin(admin.ModelAdmin):
+    list_display = ('id', 'lesson_name', 'user_name', 'created')
+    exclude = ('is_deleted',)
+    list_filter = ('user', 'lesson')
+    sortable_by = ()
+
+
+    # def get_list_filter(self, request):
+    #     res = super(LessonUserAdmin, self).get_list_filter(request)
+    #     print(res)
+    #     res = ('user', 'lesson')
+    #     return res
+
+
+    def lesson_name(self, obj):
+        return format_html(obj.lesson.title)
+
+    lesson_name.short_description = "课程"
+
+    def user_name(self, obj):
+        return format_html(obj.user.name)
+
+    user_name.short_description = "姓名"
+
+    def get_queryset(self, request):
+        qs = super(LessonUserAdmin, self).get_queryset(request)
+        if not request.user.is_superuser:
+            qs = qs.filter(user_id=request.user.id)
+        return qs
 
     def has_add_permission(self, request):
         if request.user.is_superuser:
@@ -162,7 +229,9 @@ class HomeworkAdmin(admin.ModelAdmin):
 
 
 admin.site.register(LessonType, LessonTypeAdmin)
+admin.site.register(LessonTypeUser, LessonTypeUserAdmin)
 admin.site.register(HomeworkSubject, HomeworkSubjectAdmin)
 admin.site.register(LessonHomework, LessonHomeworkAdmin)
 admin.site.register(Homework, HomeworkAdmin)
 admin.site.register(Lesson, LessonAdmin)
+admin.site.register(LessonUser, LessonUserAdmin)
