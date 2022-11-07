@@ -15,7 +15,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
@@ -27,7 +26,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -38,12 +36,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
+    'ckeditor',
     'django_redis',
     'huey.contrib.djhuey',
-    'ckeditor',
     'common',
     'lessons',
-
+    'projects',
 ]
 
 MIDDLEWARE = [
@@ -91,7 +90,6 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
@@ -110,7 +108,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -124,7 +121,6 @@ USE_L10N = True
 
 USE_TZ = False
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
@@ -137,26 +133,13 @@ STATICFILES_DIRS = (
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOW_HEADERS = (
-    'x-requested-with',
-    'content-type',
-    'accept',
-    'origin',
-    'authorization',
-    'x-csrftoken',
-    'Access-Control-Allow-Headers',
-    'Access-Control-Allow-Origin',
-    'workerid',
-    'Content-Disposition',
-    'token',
-)
+CORS_ALLOW_CREDENTIALS = True
 
 # >>>>>>>> Redis <<<<<<<<<
 CACHES = {
@@ -219,8 +202,7 @@ SIMPLEUI_HOME_INFO = False
 # 最近动作
 SIMPLEUI_HOME_ACTION = True
 
-SIMPLEUI_STATIC_OFFLINE = True
-
+SIMPLEUI_HOME_ICON = 'fa fa-eye'
 
 # >>>>>>>> HUEY 设置 <<<<<<<<<
 HUEY = {
@@ -255,6 +237,3 @@ HUEY = {
         'health_check_interval': 1,  # Check worker health every second.
     },
 }
-
-
-

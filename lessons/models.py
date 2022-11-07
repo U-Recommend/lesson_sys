@@ -10,7 +10,7 @@ class LessonType(MainModel):
         return self.name
 
     class Meta:
-        verbose_name = "课程分类"
+        verbose_name = "班级"
         verbose_name_plural = verbose_name
 
 
@@ -85,6 +85,7 @@ class Homework(MainModel):
 class LessonUser(MainModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, null=True, blank=True)
+    lesson_date = models.DateField("上课时间", null=True, blank=True)
 
     def __str__(self):
         return self.user.name

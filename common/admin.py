@@ -8,7 +8,7 @@ from django.contrib.auth.admin import UserAdmin
 # from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from common.models import User
+from common.models import User, Grade
 
 
 class MyUserCreationForm(UserCreationForm):
@@ -22,8 +22,8 @@ class MyUserChangeForm(UserChangeForm):
 
 
 class MyUserAdmin(UserAdmin):
-    list_display = ("name", "username", "is_active")
-    list_filter = ('is_staff', 'is_superuser', 'is_active')
+    list_display = ("grade", "name", "username", "is_active")
+    list_filter = ('grade', 'is_staff', 'is_superuser', 'is_active')
     search_fields = ("name",)
     form = MyUserChangeForm
     add_form = MyUserCreationForm
@@ -35,12 +35,12 @@ class MyUserAdmin(UserAdmin):
         user = request.user
         if user.is_superuser:
             self.fieldsets = ((None, {'fields': ('username', 'password',)}),
-                              (_('Personal info'), {'fields': ('name',)}),
+                              (_('Personal info'), {'fields': ('name', 'grade')}),
                               (_('Permissions'), {'fields': ('is_active', 'is_superuser')}),
                               (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
                               )
             self.add_fieldsets = ((None, {'classes': ('wide',),
-                                          'fields': ('username', 'name', 'password1', 'password2', 'is_active',
+                                          'fields': ('username', 'name', 'grade', 'password1', 'password2', 'is_active',
                                                      'is_superuser'),
                                           }),
                                   )
@@ -67,8 +67,19 @@ class MyUserAdmin(UserAdmin):
         return False
 
 
+class GradeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    exclude = ('is_deleted',)
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        return False
+
+
 from django.contrib.auth.models import Group
 
 admin.site.unregister(Group)
 
 admin.site.register(User, MyUserAdmin)
+admin.site.register(Grade, GradeAdmin)

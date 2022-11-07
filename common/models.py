@@ -11,8 +11,20 @@ class MainModel(models.Model):
     class Meta:
         abstract = True
 
+
+class Grade(MainModel):
+    name = models.CharField('名称', max_length=50, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "班级"
+        verbose_name_plural = verbose_name
+
+
 class UserManager(BaseUserManager):
-    def create_user(self, name, username,  password=None):
+    def create_user(self, name, username, password=None):
         if not username:
             raise ValueError("用户名为必填")
         user = self.model(name=name, username=username)
@@ -29,6 +41,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    grade = models.ForeignKey(Grade, on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField("姓名", max_length=32, null=True, blank=True)
 
     groups = None
@@ -65,5 +78,3 @@ class User(AbstractUser):
 
     def has_module_perms(self, app_label):
         return True
-
-
