@@ -31,19 +31,19 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-	'simpleui',
+    'simpleui',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-	'django_redis',
+    'django_redis',
     'huey.contrib.djhuey',
     'ckeditor',
-	'common',
+    'common',
     'lessons',
-	
+
 ]
 
 MIDDLEWARE = [
@@ -62,9 +62,9 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-			os.path.join(BASE_DIR, 'templates'),
+            os.path.join(BASE_DIR, 'templates'),
             os.path.join(BASE_DIR, 'static').replace('\\', '/')
-		],
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

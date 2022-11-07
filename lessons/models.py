@@ -58,8 +58,6 @@ class LessonHomework(MainModel):
 
 class Homework(MainModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    # lesson_homework = models.ForeignKey(LessonHomework, on_delete=models.CASCADE, null=True, blank=True,
-    #                                     related_name='lesson_homework')
     homework_subject = models.ForeignKey(HomeworkSubject, on_delete=models.CASCADE, null=True, blank=True)
     code = models.TextField('作业内容', null=True, blank=True)
 

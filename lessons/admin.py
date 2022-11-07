@@ -1,4 +1,5 @@
 from django.contrib import admin
+from common.utils import logger
 from lessons.models import LessonType, Lesson, Homework, LessonHomework, HomeworkSubject
 
 
@@ -37,11 +38,20 @@ class LessonAdmin(admin.ModelAdmin):
             self.change_form_template = "lessons/change_form.html"
             self.readonly_fields = ('lesson_type',)
             self.exclude = ('is_deleted', 'sort')
+
             extra_context = extra_context or {}
             lesson = Lesson.objects.filter(id=object_id).first()
             extra_context['lesson'] = lesson
-            extra_context['homework_subjects'] = HomeworkSubject.objects.filter(lessonhomework__lesson_id=object_id)
-            return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url, extra_context=extra_context)
+            h = HomeworkSubject.objects.filter(lessonhomework__lesson_id=object_id).first()
+            data = {'id': h.id, 'title': h.title, 'content': h.content, 'default_code': h.default_code}
+            homework = Homework.objects.filter(user_id=request.user.id, is_deleted=0,
+                                               homework_subject_id=h.id).first()
+            default_code = homework.code if homework and homework.code else data.get('default_code')
+            logger.info(default_code)
+            data['default_code'] = default_code
+            extra_context['homework_subject'] = data
+            return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url,
+                                                        extra_context=extra_context)
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -64,6 +74,21 @@ class HomeworkSubjectAdmin(admin.ModelAdmin):
     exclude = ('is_deleted',)
 
     def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        return False
+
+    def has_add_permission(self, request):
         if request.user.is_superuser:
             return True
         return False
@@ -107,11 +132,18 @@ class HomeworkAdmin(admin.ModelAdmin):
         return super(HomeworkAdmin, self).changelist_view(request, extra_context=extra_context)
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
-        homework = Homework.objects.filter(id=object_id).first()
-        subject = homework.homework_subject if homework else None
-        extra_context['homework_subject'] = subject
-        return super(HomeworkAdmin, self).change_view(request, object_id, form_url=form_url,
-                                                      extra_context=extra_context)
+        if request.user.is_superuser:
+            return super(HomeworkAdmin, self).change_view(request, object_id, form_url=form_url,
+                                                          extra_context=extra_context)
+        else:
+            self.change_form_template = "homework/change_form.html"
+            extra_context = extra_context or {}
+            homework = Homework.objects.filter(id=object_id).first()
+            subject = homework.homework_subject if homework else None
+            extra_context['homework_subject'] = subject
+            extra_context['code'] = homework.code if homework else ""
+            return super(HomeworkAdmin, self).change_view(request, object_id, form_url=form_url,
+                                                          extra_context=extra_context)
 
     def has_add_permission(self, request):
         if request.user.is_superuser:

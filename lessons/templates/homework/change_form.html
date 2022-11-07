@@ -38,17 +38,6 @@
             {% submit_row %}
         {% endblock %}
 
-        <p>{{ lesson.lesson_type.name }}</p>
-        <H1>{{ lesson.title }}</H1>
-        <div>
-            {% if lesson.content %}
-                {{ lesson.content|safe }}
-            {% endif %}
-
-            {% if lesson.url %}
-                <!--            <iframe src="{{ lesson.url }}" width="100%" height="800px;" frameborder="0"></iframe>-->
-            {% endif %}
-        </div>
         <h3>
             课后作业
         </h3>
@@ -97,7 +86,7 @@
     <script type="text/javascript">
         var homework_code = document.getElementById("homework_code");
         var code_result_obj = $("#code_result");
-        var default_code = `{{homework_subject.default_code}}`;
+        var default_code = `{{code}}`;
         $(function () {
             $("#changelist-filter").empty();
         });
