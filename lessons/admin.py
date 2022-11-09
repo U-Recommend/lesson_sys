@@ -13,6 +13,7 @@ class LessonTypeFilter(admin.SimpleListFilter):
         return [(i.id, _(i.name)) for i in LessonType.objects.filter(is_deleted=0)]
 
     def queryset(self, request, queryset):
+        queryset = queryset.filter(is_deleted=0)
         return queryset
 
 
@@ -24,6 +25,7 @@ class LessonFilter(admin.SimpleListFilter):
         return [(i.id, _(i.title)) for i in Lesson.objects.filter(is_deleted=0)]
 
     def queryset(self, request, queryset):
+        queryset = queryset.filter(is_deleted=0)
         return queryset
 
 
@@ -35,6 +37,7 @@ class HomeworkSubjectFilter(admin.SimpleListFilter):
         return [(i.id, _(i.title)) for i in HomeworkSubject.objects.filter(is_deleted=0)]
 
     def queryset(self, request, queryset):
+        queryset = queryset.filter(is_deleted=0)
         return queryset
 
 
@@ -47,6 +50,11 @@ class LessonTypeAdmin(admin.ModelAdmin):
             return True
         return False
 
+    def get_queryset(self, request):
+        qs = super(LessonTypeAdmin, self).get_queryset(request)
+        qs = qs.filter(is_deleted=0)
+        return qs
+
 
 class LessonTypeUserAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'lesson_type')
@@ -57,9 +65,14 @@ class LessonTypeUserAdmin(admin.ModelAdmin):
             return True
         return False
 
+    def get_queryset(self, request):
+        qs = super(LessonTypeUserAdmin, self).get_queryset(request)
+        qs = qs.filter(is_deleted=0)
+        return qs
+
 
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ('lesson_type_name', 'title_name')
+    list_display = ('title_name', 'lesson_type_name')
     list_display_links = ('title_name',)
     search_fields = ('title',)
     exclude = ('is_deleted',)
@@ -100,6 +113,11 @@ class LessonAdmin(admin.ModelAdmin):
             return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url,
                                                         extra_context=extra_context)
 
+    def get_queryset(self, request):
+        qs = super(LessonAdmin, self).get_queryset(request)
+        qs = qs.filter(is_deleted=0)
+        return qs
+
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
@@ -119,6 +137,11 @@ class LessonAdmin(admin.ModelAdmin):
 class HomeworkSubjectAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'content')
     exclude = ('is_deleted',)
+
+    def get_queryset(self, request):
+        qs = super(HomeworkSubjectAdmin, self).get_queryset(request)
+        qs = qs.filter(is_deleted=0)
+        return qs
 
     def has_module_permission(self, request):
         if request.user.is_superuser:
@@ -150,6 +173,11 @@ class LessonHomeworkAdmin(admin.ModelAdmin):
             return True
         return False
 
+    def get_queryset(self, request):
+        qs = super(LessonHomeworkAdmin, self).get_queryset(request)
+        qs = qs.filter(is_deleted=0)
+        return qs
+
 
 class HomeworkAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'homework_subject', 'comment', 'created')
@@ -160,6 +188,7 @@ class HomeworkAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super(HomeworkAdmin, self).get_queryset(request)
+        qs = qs.filter(is_deleted=0)
         if not request.user.is_superuser:
             qs = qs.filter(user_id=request.user.id)
         return qs
@@ -194,7 +223,7 @@ class HomeworkAdmin(admin.ModelAdmin):
             code.replace("'", "\'").replace('"', '\"')
             extra_context['code'] = code
             logger.info(extra_context)
-            extra_context['comment'] = format_html(homework.comment) or ""
+            extra_context['comment'] = format_html(homework.comment) if homework and homework.comment else ""
             return super(HomeworkAdmin, self).change_view(request, object_id, form_url=form_url,
                                                           extra_context=extra_context)
 
@@ -242,6 +271,7 @@ class LessonUserAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super(LessonUserAdmin, self).get_queryset(request)
+        qs = qs.filter(is_deleted=0)
         if not request.user.is_superuser:
             qs = qs.filter(user_id=request.user.id)
         return qs

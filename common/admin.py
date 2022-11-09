@@ -67,6 +67,18 @@ class MyUserAdmin(UserAdmin):
         return False
 
 
+class GradeFilter(admin.SimpleListFilter):
+    title = _("班级")
+    parameter_name = "grade"
+
+    def lookups(self, request, model_admin):
+        return [(i.id, _(i.name)) for i in Grade.objects.filter(is_deleted=0)]
+
+    def queryset(self, request, queryset):
+        queryset = queryset.filter(is_deleted=0)
+        return queryset
+
+
 class GradeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
     exclude = ('is_deleted',)
