@@ -112,7 +112,8 @@ class LessonAdmin(admin.ModelAdmin):
                         data.get('default_code', ''))
                     default_code.replace("'", "\'").replace('"', '\"')
                     logger.info(default_code)
-            data['default_code'] = default_code
+            if default_code:
+                data['default_code'] = default_code
             extra_context['homework_subject'] = data
             return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url,
                                                         extra_context=extra_context)
