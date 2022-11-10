@@ -38,4 +38,5 @@ class ProjectAdmin(admin.ModelAdmin):
             return True
         return False
 
+
 admin.site.register(Project, ProjectAdmin)

@@ -10,7 +10,7 @@ class LessonType(MainModel):
         return self.name
 
     class Meta:
-        verbose_name = "班级"
+        verbose_name = "类型"
         verbose_name_plural = verbose_name
 
 

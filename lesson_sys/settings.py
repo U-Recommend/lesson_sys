@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'huey.contrib.djhuey',
     'common',
     'lessons',
-    'projects',
+    'projects'
 ]
 
 MIDDLEWARE = [
