@@ -101,7 +101,7 @@ class LessonAdmin(admin.ModelAdmin):
             lesson = Lesson.objects.filter(id=object_id).first()
             extra_context['lesson'] = lesson
             h = HomeworkSubject.objects.filter(lessonhomework__lesson_id=object_id).first()
-            data = None
+            data = {}
             default_code = ""
             if h:
                 data = {'id': h.id, 'title': h.title, 'content': h.content, 'default_code': h.default_code}
