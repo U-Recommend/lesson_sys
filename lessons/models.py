@@ -42,12 +42,18 @@ class Lesson(MainModel):
         verbose_name_plural = verbose_name
 
 
+HOMEWORK_SUBJECT_HAS_CODE = (
+    (0, "否"),
+    (1, "是"),
+)
+
+
 class HomeworkSubject(MainModel):
     title = models.CharField("标题", max_length=100, null=True, blank=True)
     content = RichTextField('内容', null=True, blank=True)
     default_code = models.TextField('预设代码', null=True, blank=True)
     code = models.TextField('代码', null=True, blank=True)
-    has_code = models.IntegerField('是否需要代码', default=0)
+    has_code = models.IntegerField('是否需要代码', choices=HOMEWORK_SUBJECT_HAS_CODE, default=0)
 
     def __str__(self):
         return self.title
