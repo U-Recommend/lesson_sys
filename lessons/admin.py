@@ -100,21 +100,25 @@ class LessonAdmin(admin.ModelAdmin):
             extra_context = extra_context or {}
             lesson = Lesson.objects.filter(id=object_id).first()
             extra_context['lesson'] = lesson
-            h = HomeworkSubject.objects.filter(lessonhomework__lesson_id=object_id).first()
-            data = {}
-            default_code = ""
-            if h:
-                data = {'id': h.id, 'title': h.title, 'content': h.content, 'default_code': h.default_code}
-                homework = Homework.objects.filter(user_id=request.user.id, is_deleted=0,
-                                               homework_subject_id=h.id).first()
-                if homework:
-                    default_code = format_html(homework.code) if homework and homework.code else format_html(
-                        data.get('default_code', ''))
-                    default_code.replace("'", "\'").replace('"', '\"')
-                    logger.info(default_code)
-            if default_code:
-                data['default_code'] = default_code
-            extra_context['homework_subject'] = data
+            hs = HomeworkSubject.objects.filter(lessonhomework__lesson_id=object_id).first()
+            datas = []
+            for h in hs:
+                data = {}
+                default_code = ""
+                if h:
+                    data = {'id': h.id, 'title': h.title, 'content': h.content, 'default_code': h.default_code}
+                    homework = Homework.objects.filter(user_id=request.user.id, is_deleted=0,
+                                                       homework_subject_id=h.id).first()
+                    if homework:
+                        default_code = format_html(homework.code) if homework and homework.code else format_html(
+                            data.get('default_code', ''))
+                        default_code.replace("'", "\'").replace('"', '\"')
+                        logger.info(default_code)
+                if default_code:
+                    data['default_code'] = default_code
+                datas.append(data)
+            extra_context['homework_subjects'] = datas
+            # extra_context['homework_subject'] = data
             return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url,
                                                         extra_context=extra_context)
 
@@ -140,7 +144,7 @@ class LessonAdmin(admin.ModelAdmin):
 
 
 class HomeworkSubjectAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'content')
+    list_display = ('id', 'title', 'content', 'has_code')
     exclude = ('is_deleted',)
 
     def get_queryset(self, request):

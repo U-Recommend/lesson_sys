@@ -49,38 +49,45 @@
                 <!--            <iframe src="{{ lesson.url }}" width="100%" height="800px;" frameborder="0"></iframe>-->
             {% endif %}
         </div>
-        {% if homework_subject %}
+        {% if homework_subjects %}
             <hr style="margin-top:20px;">
-            <div>
-                <h3> 课后作业 </h3>
-                <p> {{ homework_subject.content|safe }} </p>
+            <h3> 课后作业 </h3>
+            {% for homework_subject in homework_subjects %}
+                <hr style="margin-top:20px;">
                 <div>
-                    <div class="col-md-6">
-                        <row>
+                    <p> {{ homework_subject.content|safe }} </p>
+                    <div>
+                        <div class="col-md-6">
+                            <row>
                             <textarea class="form-control" rows="10" id="homework_code">
                             </textarea>
-                        </row>
-                        <button class="btn btn-primary btn-small" onclick="exec_code()" style="margin-bottom:10px;">运行
-                        </button>
-                        <button class="btn btn-small btn-primary" style="margin-bottom:10px;"
-                                onclick="save_code('{{ user.id }}', '{{ homework_subject.id }}')">
-                            保存
-                        </button>
-                    </div>
-                    <div class="col-md-6">
-                        <pre id="code_result" style="height: 300px;"></pre>
+                            </row>
+                            {% if homework_subject.has_code == 1 %}
+                                <button class="btn btn-primary btn-small" onclick="exec_code()"
+                                        style="margin-bottom:10px;">
+                                    运行
+                                </button>
+                                <button class="btn btn-small btn-primary" style="margin-bottom:10px;"
+                                        onclick="save_code('{{ user.id }}', '{{ homework_subject.id }}')">
+                                    保存
+                                </button>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <pre id="code_result" style="height: 300px;"></pre>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div>
-                {% if comment %}
-                    <hr style="margin-top:20px;">
-                    <div class="col-md-12">
-                        <h4> 作业评语 </h4>
-                        <p>{{ comment|safe }}</p>
-                    </div>
-                {% endif %}
-            </div>
+                <div>
+                    {% if comment %}
+                        <hr style="margin-top:20px;">
+                        <div class="col-md-12">
+                            <h4> 作业评语 </h4>
+                            <p>{{ comment|safe }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
         {% endif %}
 
     </div>
@@ -106,9 +113,9 @@
         var homework_code = document.getElementById("homework_code");
         var code_result_obj = $("#code_result");
         {% if homework_subject.default_code %}
-        var default_code = `{{homework_subject.default_code}}`;
+            var default_code = `{{homework_subject.default_code}}`;
         {% else %}
-        var default_code = ``;
+            var default_code = ``;
         {% endif %}
 
         $(function () {

@@ -46,6 +46,7 @@ class HomeworkSubject(MainModel):
     content = RichTextField('内容', null=True, blank=True)
     default_code = models.TextField('预设代码', null=True, blank=True)
     code = models.TextField('代码', null=True, blank=True)
+    has_code = models.IntegerField('是否需要代码', default=0)
 
     def __str__(self):
         return self.title
