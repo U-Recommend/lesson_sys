@@ -31,6 +31,7 @@ class Lesson(MainModel):
     title = models.CharField("名称", max_length=100, null=True, blank=True)
     content = RichTextField('内容', null=True, blank=True)
     url = models.CharField('连接', max_length=255, null=True, blank=True)
+    pdf = models.FileField('PDF', upload_to="lessons/", null=True, blank=True)
     sort = models.IntegerField('排序', default=0)
 
     def __str__(self):
