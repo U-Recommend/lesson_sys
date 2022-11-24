@@ -100,7 +100,7 @@ class LessonAdmin(admin.ModelAdmin):
             extra_context = extra_context or {}
             lesson = Lesson.objects.filter(id=object_id).first()
             extra_context['lesson'] = lesson
-            hs = HomeworkSubject.objects.filter(lessonhomework__lesson_id=object_id).first()
+            hs = HomeworkSubject.objects.filter(lessonhomework__lesson_id=object_id, is_deleted=0)
             datas = []
             for h in hs:
                 data = {}
