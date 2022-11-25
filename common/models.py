@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager, AbstractBaseUser
+from ckeditor.fields import RichTextField
 
 
 class MainModel(models.Model):
@@ -78,3 +79,23 @@ class User(AbstractUser):
 
     def has_module_perms(self, app_label):
         return True
+
+
+STATUS = (
+    (0, '禁用'),
+    (1, '正常'),
+)
+
+
+class Feedback(MainModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    content = RichTextField('内容', null=True, blank=True)
+    is_public = models.IntegerField("保密信息", choices=((0, "否"), (1, '是')), default=0, help_text="保密信息只有老师能看到")
+    feedback = RichTextField('回复', null=True, blank=True)
+
+    def __str__(self):
+        return self.user.name
+
+    class Meta:
+        verbose_name = "意见与建议"
+        verbose_name_plural = verbose_name

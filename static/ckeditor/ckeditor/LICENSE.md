@@ -927,7 +927,7 @@ Version 1.1
           combination of the Original Code with other software or devices.
 
      2.2. Contributor Grant.
-     Subject to third party intellectual property claims, each Contributor
+     Exercises to third party intellectual property claims, each Contributor
      hereby grants You a world-wide, royalty-free, non-exclusive license
 
           (a)  under intellectual property rights (other than patent or

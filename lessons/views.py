@@ -2,24 +2,31 @@ import json
 from django.shortcuts import render
 
 from common.utils import common_response, logger
-from lessons.models import HomeworkSubject, Homework
-from lessons.serializers.homework import stdoutIO
+from lessons.models import Exercises, Homework
+from lessons.serializers.exercises import exercises_data
+from lessons.serializers.homework import stdoutIO, homework_create_or_update
+
+
+def exercises_detail(request):
+    if request.method == "GET":
+        exercises_id = request.GET.get('exercises_id')
+        user_id = request.GET.get('user_id')
+        lesson_id = request.GET.get('lesson_id')
+        data = exercises_data(eid=exercises_id, uid=user_id, lesson_id=lesson_id)
+        return common_response(result=data)
 
 
 def homework_code(request):
     if request.method == "POST":
         req = request.POST
-        # req = json.loads(request.body)
         code = req.get('code')
-        uid = req.get('uid')
-        sid = req.get('sid')
+        content = req.get('content')
+        user_id = req.get('uid')
+        lesson_id = req.get('lid')
+        exercises_id = req.get('eid')
         logger.info(code)
-        homework = Homework.objects.filter(user_id=uid, homework_subject_id=sid).first()
-        if homework:
-            homework.code = code
-        else:
-            homework = Homework(user_id=uid, homework_subject_id=sid, code=code)
-            homework.save()
+        homework = homework_create_or_update(user_id=user_id, lesson_id=lesson_id, exercises_id=exercises_id,
+                                             content=content, code=code)
     return common_response(message="保存成功")
 
 

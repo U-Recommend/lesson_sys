@@ -2,19 +2,7 @@ from django.utils.html import format_html, mark_safe
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from common.utils import logger
-from lessons.models import LessonType, LessonTypeUser, Lesson, Homework, LessonHomework, HomeworkSubject, LessonUser
-
-
-class LessonTypeFilter(admin.SimpleListFilter):
-    title = _("课程分类", )
-    parameter_name = "lesson_type"
-
-    def lookups(self, request, model_admin):
-        return [(i.id, _(i.name)) for i in LessonType.objects.filter(is_deleted=0)]
-
-    def queryset(self, request, queryset):
-        queryset = queryset.filter(is_deleted=0)
-        return queryset
+from lessons.models import Course, Lesson, Exercises, Homework, Attendance
 
 
 class LessonFilter(admin.SimpleListFilter):
@@ -22,137 +10,119 @@ class LessonFilter(admin.SimpleListFilter):
     parameter_name = "lesson"
 
     def lookups(self, request, model_admin):
-        return [(i.id, _(i.title)) for i in Lesson.objects.filter(is_deleted=0)]
+        return [(i.id, _(i.course.title if i.course else str(i.id))) for i in Lesson.objects.filter(is_deleted=0)]
 
     def queryset(self, request, queryset):
         queryset = queryset.filter(is_deleted=0)
         return queryset
 
 
-class HomeworkSubjectFilter(admin.SimpleListFilter):
+class ExercisesFilter(admin.SimpleListFilter):
     title = _('习题', )
-    parameter_name = "homework_subject"
+    parameter_name = "exercises"
 
     def lookups(self, request, model_admin):
-        return [(i.id, _(i.title)) for i in HomeworkSubject.objects.filter(is_deleted=0)]
+        return [(i.id, _(i.title)) for i in Exercises.objects.filter(is_deleted=0)]
 
     def queryset(self, request, queryset):
         queryset = queryset.filter(is_deleted=0)
         return queryset
 
 
-class LessonTypeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'created')
+    search_fields = ('title',)
     exclude = ('is_deleted',)
+    sortable_by = ()
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = qs.filter(is_deleted=0)
+        return qs
 
     def has_module_permission(self, request):
         if request.user.is_superuser:
             return True
         return False
 
+
+class ExercisesAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'content', 'need_code', 'need_answer')
+    exclude = ('is_deleted',)
+    sortable_by = ()
+
     def get_queryset(self, request):
-        qs = super(LessonTypeAdmin, self).get_queryset(request)
+        qs = super(ExercisesAdmin, self).get_queryset(request)
         qs = qs.filter(is_deleted=0)
         return qs
-
-
-class LessonTypeUserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'lesson_type')
-    exclude = ('is_deleted',)
 
     def has_module_permission(self, request):
         if request.user.is_superuser:
             return True
         return False
-
-    def get_queryset(self, request):
-        qs = super(LessonTypeUserAdmin, self).get_queryset(request)
-        qs = qs.filter(is_deleted=0)
-        return qs
 
 
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ('title_name', 'lesson_type_name')
-    list_display_links = ('title_name',)
-    search_fields = ('title',)
+    list_display = ('id', 'grade', 'num', 'title', 'lesson_date')
+    search_fields = ('titles',)
+    list_filter = ('grade', 'num')
     exclude = ('is_deleted',)
-    list_filter = (LessonTypeFilter,)
     actions_selection_counter = False
     sortable_by = ()
+    filter_horizontal = ('user', 'exercises')
+    show_full_result_count = False
 
-    def lesson_type_name(self, obj):
-        return obj.lesson_type.name or ""
+    def title(self, obj):
+        return format_html(obj.course.title)
 
-    lesson_type_name.short_description = "课程阶段"
+    title.short_description = "名称"
 
-    def title_name(self, obj):
-        return mark_safe(obj.title or "")
+    def grade_name(self, obj):
+        qs = Lesson.objects.filter(lesson_id=obj.id, is_deleted=0).values_list('name', flat=True)
+        res = '<br/>'.join(list(qs))
+        return format_html(res)
 
-    title_name.short_description = "课程"
+    grade_name.short_description = "班级"
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super(LessonAdmin, self).get_search_results(request, queryset, search_term)
+        try:
+            queryset &= (self.model.objects.filter(course__title__icontains=search_term))
+        except:
+            pass
+        return queryset, use_distinct
+
+    def get_queryset(self, request):
+        qs = super(LessonAdmin, self).get_queryset(request)
+        # qs = qs.filter(is_deleted=0)
+        if not request.user.is_superuser:
+            qs = qs.filter(grade_id=request.user.grade_id, status=1).order_by('-num')
+        return qs
+
+    def changelist_view(self, request, extra_context=None):
+        if not request.user.is_superuser:
+            self.list_display = ('num', 'title', 'lesson_date')
+            self.list_display_links = ('title',)
+            self.search_fields = ('title',)
+            self.list_filter = ('num',)
+        return super(LessonAdmin, self).changelist_view(request, extra_context=extra_context)
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
-        if request.user.is_superuser:
+        user = request.user
+        if user.is_superuser:
+            logger.info("superuser")
             return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url,
                                                         extra_context=extra_context)
         else:
             self.change_form_template = "lessons/change_form.html"
-
             extra_context = extra_context or {}
             lesson = Lesson.objects.filter(id=object_id).first()
             extra_context['lesson'] = lesson
-            hs = HomeworkSubject.objects.filter(lessonhomework__lesson_id=object_id, is_deleted=0)
-            datas = []
-            for h in hs:
-                data = {}
-                default_code = ""
-                if h:
-                    data = {'id': h.id, 'title': h.title, 'content': h.content, 'default_code': h.default_code}
-                    homework = Homework.objects.filter(user_id=request.user.id, is_deleted=0,
-                                                       homework_subject_id=h.id).first()
-                    if homework:
-                        default_code = format_html(homework.code) if homework and homework.code else format_html(
-                            data.get('default_code', ''))
-                        default_code.replace("'", "\'").replace('"', '\"')
-                        logger.info(default_code)
-                if default_code:
-                    data['default_code'] = default_code
-                datas.append(data)
-            extra_context['homework_subjects'] = datas
-            # extra_context['homework_subject'] = data
+            extra_context['user'] = user
             return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url,
                                                         extra_context=extra_context)
 
-    def get_queryset(self, request):
-        qs = super(LessonAdmin, self).get_queryset(request)
-        qs = qs.filter(is_deleted=0)
-        return qs
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        return False
-
     def has_add_permission(self, request):
-        if request.user.is_superuser:
-            return True
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        return False
-
-
-class HomeworkSubjectAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'content', 'has_code')
-    exclude = ('is_deleted',)
-
-    def get_queryset(self, request):
-        qs = super(HomeworkSubjectAdmin, self).get_queryset(request)
-        qs = qs.filter(is_deleted=0)
-        return qs
-
-    def has_module_permission(self, request):
         if request.user.is_superuser:
             return True
         return False
@@ -166,34 +136,38 @@ class HomeworkSubjectAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return True
         return False
-
-    def has_add_permission(self, request):
-        if request.user.is_superuser:
-            return True
-        return False
-
-
-class LessonHomeworkAdmin(admin.ModelAdmin):
-    list_display = ('id', 'lesson', 'homework_subject')
-    exclude = ('is_deleted',)
-
-    def has_module_permission(self, request):
-        if request.user.is_superuser:
-            return True
-        return False
-
-    def get_queryset(self, request):
-        qs = super(LessonHomeworkAdmin, self).get_queryset(request)
-        qs = qs.filter(is_deleted=0)
-        return qs
 
 
 class HomeworkAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'homework_subject', 'comment', 'created')
+    list_display = ('id', 'user_name', 'lesson_title', 'exercises_title', 'comment_content', 'created')
     exclude = ('is_deleted',)
     sortable_by = ()
-    list_filter = (HomeworkSubjectFilter,)
+    list_filter = (LessonFilter, 'user', ExercisesFilter)
     actions_selection_counter = False
+    # raw_id_fields = ('user', 'lesson', 'exercises')
+    fields = ('user', 'lesson', 'exercises', 'code', 'content', 'comment')
+    # readonly_fields = ('user', 'lesson', 'exercises')
+    view_on_site = False
+
+    def user_name(self, obj):
+        return format_html(obj.user.name)
+
+    user_name.short_description = "学生姓名"
+
+    def lesson_title(self, obj):
+        return format_html(obj.lesson.course.title)
+
+    lesson_title.short_description = "课程名称"
+
+    def exercises_title(self, obj):
+        return format_html(obj.exercises.title)
+
+    exercises_title.short_description = "作业名称"
+
+    def comment_content(self, obj):
+        return format_html(obj.comment)
+
+    comment_content.short_description = "老师评语"
 
     def get_queryset(self, request):
         qs = super(HomeworkAdmin, self).get_queryset(request)
@@ -203,7 +177,7 @@ class HomeworkAdmin(admin.ModelAdmin):
         return qs
 
     def homework_title(self, obj):
-        return obj.homework_subject.title if obj.homework_subject else ''
+        return obj.lesson.title if obj.lesson else ''
 
     homework_title.short_description = '作业名称'
 
@@ -212,99 +186,13 @@ class HomeworkAdmin(admin.ModelAdmin):
 
     created_name.short_description = "保存时间"
 
-    def changelist_view(self, request, extra_context=None):
-        if not request.user.is_superuser:
-            self.list_display = ('homework_title', 'created_name')
-            self.exclude = ('is_deleted', 'user')
-        return super(HomeworkAdmin, self).changelist_view(request, extra_context=extra_context)
-
-    def change_view(self, request, object_id, form_url="", extra_context=None):
-        if request.user.is_superuser:
-            return super(HomeworkAdmin, self).change_view(request, object_id, form_url=form_url,
-                                                          extra_context=extra_context)
-        else:
-            self.change_form_template = "homework/change_form.html"
-            extra_context = extra_context or {}
-            homework = Homework.objects.filter(id=object_id).first()
-            subject = homework.homework_subject if homework else None
-            extra_context['homework_subject'] = subject
-            code = format_html(homework.code) if homework else ""
-            code.replace("'", "\'").replace('"', '\"')
-            extra_context['code'] = code
-            logger.info(extra_context)
-            extra_context['comment'] = format_html(homework.comment) if homework and homework.comment else ""
-            return super(HomeworkAdmin, self).change_view(request, object_id, form_url=form_url,
-                                                          extra_context=extra_context)
-
-    def has_add_permission(self, request):
-        if request.user.is_superuser:
-            return True
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        return False
-
-    def has_delete_permission(self, request, obj=None):
+    def has_module_permission(self, request):
         if request.user.is_superuser:
             return True
         return False
 
 
-class LessonUserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'lesson_name', 'user_name', 'lesson_date')
-    exclude = ('is_deleted',)
-    list_filter = ('user', 'lesson')
-    sortable_by = ()
-    actions_selection_counter = False
-
-    def get_list_filter(self, request):
-        res = super(LessonUserAdmin, self).get_list_filter(request)
-        print(res)
-        if request.user.is_superuser:
-            res = ('user', LessonFilter)
-        else:
-            res = (LessonFilter,)
-        return res
-
-    def lesson_name(self, obj):
-        return format_html(obj.lesson.title)
-
-    lesson_name.short_description = "课程"
-
-    def user_name(self, obj):
-        return format_html(obj.user.name)
-
-    user_name.short_description = "姓名"
-
-    def get_queryset(self, request):
-        qs = super(LessonUserAdmin, self).get_queryset(request)
-        qs = qs.filter(is_deleted=0)
-        if not request.user.is_superuser:
-            qs = qs.filter(user_id=request.user.id)
-        return qs
-
-    def has_add_permission(self, request):
-        if request.user.is_superuser:
-            return True
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        return False
-
-
-admin.site.register(LessonType, LessonTypeAdmin)
-admin.site.register(LessonTypeUser, LessonTypeUserAdmin)
-admin.site.register(HomeworkSubject, HomeworkSubjectAdmin)
-admin.site.register(LessonHomework, LessonHomeworkAdmin)
-admin.site.register(Homework, HomeworkAdmin)
+admin.site.register(Course, CourseAdmin)
 admin.site.register(Lesson, LessonAdmin)
-admin.site.register(LessonUser, LessonUserAdmin)
+admin.site.register(Exercises, ExercisesAdmin)
+admin.site.register(Homework, HomeworkAdmin)

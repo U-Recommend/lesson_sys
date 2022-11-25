@@ -7,6 +7,7 @@ class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'start_date', 'end_date', 'stuff_list')
     sortable_by = ()
     exclude = ('is_deleted',)
+    show_full_result_count = False
 
     def stuff_list(self, obj):
         pusers = ProjectUser.objects.filter(project_id=obj.id, is_deleted=0)

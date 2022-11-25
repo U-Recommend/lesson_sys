@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{% static 'js/bootstrap-select/bootstrap-select.min.css' %}">
     <link rel="stylesheet" href="{% static 'js/codemirror5/lib/codemirror.css' %}">
     <link rel="stylesheet" href="{% static 'js/codemirror5/theme/seti.css' %}">
+
 {% endblock %}
 
 
@@ -38,63 +39,100 @@
             {% submit_row %}
         {% endblock %}
 
-        <p>{{ lesson.lesson_type.name }}</p>
-        <H1>{{ lesson.title }}</H1>
-        <div>
-            {% if lesson.content %}
-                {{ lesson.content|safe }}
-            {% endif %}
+        <input type="text" id="user_id" value="{{ user.id }}" hidden>
+        <input type="text" id="lesson_id" value="{{ lesson.id }}" hidden>
+        <div style="margin-left: 20px;">
+            <H1>{{ lesson.course.title }}</H1>
+            <div>
+                {% if lesson.course.content %}
+                    {{ lesson.course.content|safe }}
+                {% endif %}
 
-            {% if lesson.url %}
-                <iframe src="{{ lesson.url }}" width="80%" height="800px;" frameborder="0"></iframe>
-            {% endif %}
+                {% if lesson.course.url %}
+                    <iframe src="{{ lesson.course.url }}" width="80%" height="100%"></iframe>
+                {% endif %}
 
-            {% if lesson.pdf %}
-                <embed src="{{ lesson.pdf.url }}" type="application/pdf" width="100%" height="800px;">
-            {% endif %}
-        </div>
-        {% if homework_subjects %}
-            <hr style="margin-top:20px;">
-            <h3> 课后作业 </h3>
-            {% for homework_subject in homework_subjects %}
+                {% if lesson.course.pdf %}
+                    <embed src="{{ lesson.course.pdf.url }}" type="application/pdf" width="100%" height="800px;">
+                {% endif %}
+            </div>
+            {% if lesson.exercises %}
                 <hr style="margin-top:20px;">
-                <div>
-                    <p> {{ homework_subject.content|safe }} </p>
-                    {% if homework_subject.has_code == 1 %}
-                        <div>
-                            <div class="col-md-6">
-                                <row>
+                <h4> 课后作业 </h4>
+                {% for ex in lesson.exercises.all %}
+                    <div>
+                        <p> {{ ex.content|safe }} </p>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary btn-sm" onclick="show_answer('{{ ex.id }}')">详情
+                        </button>
+                    </div>
+
+                {% endfor %}
+            {% endif %}
+
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="homework_detail" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
+         data-backdrop="static">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <input type="text" id="exercises_id" hidden>
+                    <input type="text" id="need_code" hidden>
+                    <input type="text" id="need_answer" hidden>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exercises_title"></h4>
+                </div>
+                <div class="modal-body">
+
+                    <p class="col-md-12 lead" id="exercises_content">
+
+                    </p>
+                    <div style="margin-bottom: 10px;" id="python_modal">
+                        <div class="col-md-6">
                             <textarea class="form-control" rows="10" id="homework_code">
                             </textarea>
-                                </row>
-                                <button class="btn btn-primary btn-small" onclick="exec_code()"
-                                        style="margin-bottom:10px;">
-                                    运行
-                                </button>
-                                <button class="btn btn-small btn-primary" style="margin-bottom:10px;"
-                                        onclick="save_code('{{ user.id }}', '{{ homework_subject.id }}')">
-                                    保存
-                                </button>
-                            </div>
-                            <div class="col-md-6">
-                                <pre id="code_result" style="height: 300px;"></pre>
-                            </div>
                         </div>
-                    {% endif %}
-                </div>
-                <div>
-                    {% if comment %}
-                        <hr style="margin-top:20px;">
-                        <div class="col-md-12">
-                            <h4> 作业评语 </h4>
-                            <p>{{ comment|safe }}</p>
+                        <div class="col-md-6">
+                            <pre id="code_result" style="height: 300px;"></pre>
                         </div>
-                    {% endif %}
-                </div>
-            {% endfor %}
-        {% endif %}
+                    </div>
 
+                    <div style="margin-bottom: 10px;" id="scratch_modal">
+                        <div class="col-md-6">
+                            <textarea class="form-control" rows="10" id="homework_code">
+                            </textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <pre id="code_result" style="height: 300px;"></pre>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                            <textarea class="form-control ck-editor" rows="10" id="normal_homework_result">
+                            </textarea>
+                    </div>
+
+                    <div class="col-md-12" id="has_comment">
+                        <h5>评语</h5>
+                        <div class="col-md-12" style="margin-bottom:20px;" id="homework_comment">
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary " onclick="exec_code()" id="run_btn"> 运行</button>
+                    <button type="button" class="btn btn-primary" onclick="save_code()"> 保存</button>
+                    <!--<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>-->
+                </div>
+
+            </div>
+        </div>
     </div>
+
+
 
 
     <script type="text/javascript" src="{% static '/admin/simpleui-x/automatic/dicts.js' %}"></script>
@@ -111,23 +149,38 @@
     <script type="text/javascript" src="{% static '/js/codemirror5/mode/python/python.js' %}"></script>
     <script type="text/javascript" src="{% static '/js/codemirror5/addon/edit/closetag.js' %}"></script>
     <script type="text/javascript" src="{% static '/js/codemirror5/addon/edit/closebrackets.js' %}"></script>
+    <script type="text/javascript" src="{% static "/ckeditor/ckeditor-init.js" %}"></script>
+    <script type="text/javascript" src="{% static "/ckeditor/ckeditor/ckeditor.js" %}"></script>
 
 
     <script type="text/javascript">
-        var homework_code = document.getElementById("homework_code");
+        var uid_obj = $("#user_id");
+        var lid_obj = $("#lesson_id");
+        var eid_obj = $("#exercises_id");
+        var homework_code_obj = document.getElementById("homework_code");
         var code_result_obj = $("#code_result");
-        {% if homework_subject.default_code %}
-            var default_code = `{{homework_subject.default_code}}`;
-        {% else %}
-            var default_code = ``;
-        {% endif %}
+        var exercises_title_obj = $("#exercises_title");
+        var exercises_content_obj = $("#exercises_content");
+        var has_comment_obj = $("#has_comment");
+        var homework_comment_obj = $("#homework_comment");
+        var python_modal_obj = $("#python_modal");
+        var scratch_modal_obj = $("#scratch_modal");
+        var normal_homework_result_obj = $("#normal_homework_result");
+        var run_btn_obj = $("#run_btn");
+        var need_code_obj = $("#need_code");
+        var need_answer_obj = $("#need_answer");
+        python_modal_obj.hide();
+        scratch_modal_obj.hide();
+        normal_homework_result_obj.hide();
+        run_btn_obj.hide();
+        need_code_obj.val(0);
+        need_answer_obj.val(0);
 
         $(function () {
-            $("#changelist-filter").empty();
+
         });
 
-
-        var editor = CodeMirror.fromTextArea(homework_code, {
+        var editor = CodeMirror.fromTextArea(homework_code_obj, {
             mode: "python",
             lineNumbers: true,
             smartIndent: true,
@@ -135,23 +188,29 @@
             theme: 'seti',
         });
 
-        console.log(default_code);
-        editor.setValue(default_code);
-
-        function save_code(uid, sid) {
+        // 保存作业
+        function save_code() {
+            let need_code = need_code_obj.val();
+            let need_answer = need_answer_obj.val();
             let code = editor.getValue();
+            let homework_content = normal_homework_result_obj.val();
             console.log(code);
 
-            if (code.length == 0) {
-                layer.alert("为空");
+            if (need_code == 1 && code.length == 0) {
+                layer.msg("代码为空, 不能保存", {icon: 2, time: 1000});
                 return false
             }
-            console.log(uid);
-            console.log(sid);
+            if (need_answer == 1 && homework_content.length == 0) {
+                layer.msg('作业为空, 不能保存', {icon: 2, time: 1000});
+                return false
+            }
+
             let data = {
                 "code": code,
-                "uid": uid,
-                "sid": sid
+                'content': homework_content,
+                "uid": uid_obj.val(),
+                "lid": lid_obj.val(),
+                'eid': eid_obj.val(),
             };
             console.log(data);
             $.post('{% url "homework_code" %}', data, function (res) {
@@ -168,6 +227,60 @@
                 let icon = res.code > 0 ? 2 : 1;
                 layer.msg(res.msg, {time: 1000, icon: icon});
                 code_result_obj.text(res.result);
+            })
+        }
+
+        function show_answer(eid) {
+            console.log(eid);
+            has_comment_obj.hide();
+
+            eid_obj.val(eid);
+            let data = {
+                'user_id': uid_obj.val(),
+                'exercises_id': eid,
+                'lesson_id': lid_obj.val()
+            };
+            $.get('{% url "exercises_detail" %}', data, function (res) {
+                console.log(res);
+                if (res.code == 0) {
+                    let datas = res.result;
+                    exercises_title_obj.html(datas.title);
+                    exercises_content_obj.html(datas.content);
+
+                    if (datas.need_code == 1) {
+                        if (datas.code_language == 'python') {
+                            editor.setValue(datas.default_code);
+                            python_modal_obj.show();
+                            run_btn_obj.show();
+
+                            need_code_obj.val(1);
+                        }
+                    } else {
+                        python_modal_obj.hide();
+                        scratch_modal_obj.hide();
+                        run_btn_obj.hide();
+
+                        need_code_obj.val(0);
+                    }
+
+                    if (datas.need_answer == 1) {
+                        normal_homework_result_obj.show();
+                        normal_homework_result_obj.text(datas.homework_content);
+                        need_answer_obj.val(1);
+                    } else {
+                        normal_homework_result_obj.hide();
+                        need_answer_obj.val(0);
+                    }
+
+                    if (datas.comment) {
+                        has_comment_obj.show();
+                        homework_comment_obj.html(datas.comment);
+                    }
+                    $("#homework_detail").modal('show');
+                } else {
+                    layer.msg(res.msg, {icon: 1, time: 1000});
+                    return false
+                }
             })
         }
 

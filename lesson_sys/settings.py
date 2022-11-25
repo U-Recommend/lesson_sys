@@ -204,6 +204,10 @@ SIMPLEUI_HOME_ACTION = True
 
 SIMPLEUI_HOME_ICON = 'fa fa-eye'
 
+SIMPLEUI_CONFIG = {
+    'system_keep': False,
+}
+
 # >>>>>>>> HUEY 设置 <<<<<<<<<
 HUEY = {
     'huey_class': 'huey.RedisHuey',  # Huey implementation to use.
