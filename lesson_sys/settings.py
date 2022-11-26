@@ -202,7 +202,9 @@ SIMPLEUI_HOME_INFO = False
 # 最近动作
 SIMPLEUI_HOME_ACTION = True
 
-SIMPLEUI_HOME_ICON = 'fa fa-eye'
+SIMPLEUI_HOME_ICON = 'fa fa-python'
+
+# SIMPLEUI_DEFAULT_THEME = 'admin.element.css'
 
 SIMPLEUI_CONFIG = {
     'system_keep': False,
