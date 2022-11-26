@@ -35,7 +35,7 @@ class Exercises(MainModel):
     content = RichTextField('内容', null=True, blank=True)
     default_code = models.TextField('预设代码', null=True, blank=True)
     answer = RichTextField('答案', null=True, blank=True)
-    code = models.TextField('代码', null=True, blank=True)
+    code = models.TextField('答案代码', null=True, blank=True)
     need_code = models.IntegerField('是否需要代码', choices=SUBJECT_HAS_CODE, default=1)
     need_answer = models.IntegerField('是否需要答题', choices=SUBJECT_HAS_CODE, default=1)
     status = models.IntegerField('状态', choices=STATUS, default=1)
