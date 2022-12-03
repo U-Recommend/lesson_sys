@@ -40,4 +40,22 @@ class ProjectAdmin(admin.ModelAdmin):
         return False
 
 
+class ProjectFilesAdmin(admin.ModelAdmin):
+    list_display = ('project', 'file_url', 'sort', 'created')
+    exclude = ('is_deleted',)
+    show_full_result_count = False
+    sortable_by = ()
+
+    def file_url(self, obj):
+        if not obj.file:
+            return ''
+        return format_html(obj.file.url)
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        return False
+
+
 admin.site.register(Project, ProjectAdmin)
+admin.site.register(ProjectFiles, ProjectFilesAdmin)
