@@ -165,7 +165,7 @@ class HomeworkAdmin(admin.ModelAdmin):
     exercises_title.short_description = "作业名称"
 
     def comment_content(self, obj):
-        return format_html(obj.comment)
+        return format_html(obj.comment or "")
 
     comment_content.short_description = "老师评语"
 
