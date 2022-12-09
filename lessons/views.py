@@ -1,7 +1,7 @@
 import json
 from django.shortcuts import render
 from django.http import JsonResponse
-from common.utils import common_response, logger, admin_page_calculate_result
+from common.utils import common_response, logger, page_calculate
 from common.models import User, Grade
 from lessons.models import Exercises, Homework, Lesson
 from lessons.serializers.exercises import exercises_data
@@ -95,7 +95,7 @@ def attendance_list(request):
         data_dict = {}
         try:
             logger.info(query.count())
-            data_dict, datas = admin_page_calculate_result(request_data=request, data=query)
+            data_dict, datas = page_calculate(request_data=request.GET, data=query)
             result = []
             for data in datas:
                 logger.info(data.id)

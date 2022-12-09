@@ -59,47 +59,25 @@ def get_page_data_info(data, current_page=1, page_size=20):
     return data[start_num: end_num], current_page, total_data, page_size
 
 
-def page_calculate(request_data):
+def page_calculate(request_data, data=None):
     '''分页'''
     try:
         draw = int(request_data.get('draw', 1))
+        logger.info(draw)
     except:
         draw = 1
     try:
         length = int(request_data.get('length', 10))
     except:
         length = 20
-    try:
-        start = request_data.get('start')
-        start = int(start) if start else int((draw - 1) * length)
-    except:
-        start = int((draw - 1) * length)
+    start = int((draw - 1) * length)
+    data = data[int(start): int(start) + int(length)]
     data_dict = {
         'draw': draw,
         'total': 0,
-        'recordsFiltered': 0,
         'rows': [],
         'code': 0,
     }
-    return data_dict, start, length
-
-
-def admin_page_calculate_result(request_data=None, data=None):
-    """分页 原生datatables要求recordsTotal和recordsFiltered都为总记录数"""
-    data_dict, start, length = page_calculate(request_data.GET)
-    data_dict['code'] = 0
-    data_dict['msg'] = 'success'
-    try:
-        data_dict['total'] = data_dict['recordsFiltered'] = len(data)
-        # data = data[int(start): int(start) + int(length)]
-        data_dict['rows'] = []
-    except Exception as ex:
-        logger.exception(ex)
-        data_dict['total'] = 0
-        data_dict['recordsFiltered'] = 0
-        data_dict['rows'] = []
-        data_dict['code'] = 4000
-        data_dict['msg'] = 'fail'
     return data_dict, data
 
 
