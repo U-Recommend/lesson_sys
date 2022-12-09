@@ -96,7 +96,7 @@ def attendance_list(request):
             data_dict, datas = admin_page_calculate_result(request_data=request, data=query)
             result = []
             for data in datas:
-                res = attendance_data(data, user)
+                res = attendance_data(lesson=data, user=user)
                 result.append(res)
             data_dict['data'] = result
         except Exception as ex:
