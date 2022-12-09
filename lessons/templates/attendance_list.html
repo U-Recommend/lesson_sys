@@ -15,6 +15,7 @@
             }
         </style>
     {% endif %}
+
 {% endblock %}
 
 {% block extrahead %}
@@ -66,6 +67,9 @@
     <link rel="stylesheet" href="{% static '/js/datatables/jquery.dataTables.min.css' %}">
     <link rel="stylesheet" href="{% static '/js/bootstrap-select/bootstrap-select.min.css' %}">
     <link rel="stylesheet" href="{% static '/js/bootstrap-switch/bootstrap-switch.min.css' %}">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.css">
 
     <div id="content-main">
         <div class="module filtered" id="changelist">
@@ -144,10 +148,12 @@
 
     <script type="text/javascript" src="{% static '/js/bootstrap/bootstrap.min.js' %}"></script>
     <script type="text/javascript" src="{% static '/js/layer/2.4/layer.js' %}"></script>
-    <script type="text/javascript" src="{% static '/js/datatables/1.10.0/jquery.dataTables.min.js' %}"></script>
 
-    <script src="{% static '/js/bootstrap-select/bootstrap-select.min.js' %}"></script>
-    <script src="{% static '/js/bootstrap-switch/bootstrap-switch.min.js' %}"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.js"></script>
+    <!-- Latest compiled and minified Locales -->
+    <script src="https://unpkg.com/bootstrap-table@1.21.1/dist/locale/bootstrap-table-zh-CN.min.js"></script>
+
     <script type="text/javascript">
         var date__gte_obj = $("#date__gte");
         var date__lte_obj = $("#date__lte");
@@ -173,61 +179,78 @@
         }
 
 
-        $.dataTablesSettings = {
-            searching: false,
-            responsive: true,
-            serverSide: true,
-            ordering: false,
-            ajax: {
-                url: '{% url "attendance_list" %}',
-                dataSrc: 'data',
-            },
-            columns: [
-                {"data": "date"},
-                {
-                    "data": "lesson_name", "render": function (data, type, full, meta) {
-                        let html = data;
-                        let lesson_url = "../lesson/" + full.lesson_id + "/change/";
-                        html += '<a target="_blank" style="margin-left:20px;" href=' + lesson_url + '><icon>去学习</icon></a>';
-                        return html
-                    }
+        var table_obj = $("#data_list_table");
+        var table_setting = {
+            url: '{% url "attendance_list" %}',
+            mehtod: 'GET',
+            dataType: 'json',
+            striped: true,
+            cache: false,
+            pagination: true,
+            sortable: false,
+            sidePagination: 'server',
+            pageNumber: 1,
+            pageSize: 10,
+            pageList: [10, 20, 50],
+            queryParamsType: "",
+            search: false,
+            strictSearch: false,
+            showColumns: false,                  //是否显示所有的列
+            showRefresh: false,                  //是否显示刷新按钮
+            minimumCountColumns: 2,             //最少允许的列数
+            clickToSelect: false,                //是否启用点击选中行
+            showToggle: false,                    //是否显示详细视图和列表视图的切换按钮
+            cardView: false,                    //是否显示详细视图
+            detailView: false,                  //是否显示父子表
+            paginationFirstText: "首页",
+            paginationPreText: "上一页",
+            paginationNextText: "下一页",
+            paginationLastText: "末页",
+            queryParams(params) {
+                return {
+                    "draw": params.pageNumber,
+                    "length": params.pageSize,
+                    "filter_lesson": $("#filter_lesson").val(),
+                    "date__gte": $("#date__gte").val(),
+                    "date__lte": $("#date__lte").val(),
+                    "filter_grade": $("#filter_grade").val(),
+                    "filter_user": $("#filter_user").val(),
                 }
-            ],
-            columnDefs: [
-                {
-                    "orderable": false,
-                    "targets": "_all"
-                },
-            ],
+            },
+            columns: [{
+                field: 'date',
+                name: 'date',
+                title: '上课日期',
+                align: 'center',
+                sortable: false
+            }, {
+                field: 'lesson_name',
+                name: 'lesson_name',
+                align: 'center',
+                title: '课程',
+                formatter: function (value, row, index) {
+                    let html = value;
+                    let lesson_url = "../lesson/" + row.lesson_id + "/change/";
+                    html += '<a target="_blank" style="margin-left:20px;" href=' + lesson_url + '><icon>去学习</icon></a>';
+                    return html;
+                }
+            }],
+
         };
-
-        var datas_table = $("#data_list_table").on('xhr.dt', function (e, settings, json, xhr) {
-            // 查询总数渲染
-            $("#total-count").text(json.recordsTotal);
-        }).DataTable($.dataTablesSettings);
-
-        var datas_table_filter = function () {
-            let param = {
-                "filter_lesson": $("#filter_lesson").val(),
-                "date__gte": $("#date__gte").val(),
-                "date__lte": $("#date__lte").val(),
-                "filter_grade": $("#filter_grade").val(),
-                "filter_user": $("#filter_user").val(),
-            };
-            datas_table.settings()[0].ajax.data = param;
-            datas_table.ajax.reload();
-        };
-
+        table_obj.bootstrapTable('destroy');
+        table_obj.bootstrapTable(table_setting);
 
         // 查询搜索结果并充值表格
         $('#data-search').click(function () {
-            datas_table_filter();
+            table_obj.bootstrapTable('destroy');
+            table_obj.bootstrapTable(table_setting);
+
         });
 
 
         $(function () {
             let today = get_today();
-            datas_table_filter();
+//            datas_table_filter();
 
         });
 

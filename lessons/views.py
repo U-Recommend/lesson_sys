@@ -71,6 +71,7 @@ def attendance_list_page(request):
 def attendance_list(request):
     if request.method == "GET":
         user = request.user
+        logger.info(request.GET)
         filter_lesson = request.GET.get("filter_lesson")
         filter_grade = request.GET.get("filter_grade")
         filter_user = request.GET.get("filter_user")
@@ -99,7 +100,7 @@ def attendance_list(request):
                 logger.info(data.id)
                 res = attendance_data(lesson=data, user=user)
                 result.append(res)
-            data_dict['data'] = result
+            data_dict['rows'] = result
         except Exception as ex:
             logger.exception(ex)
         return JsonResponse(data_dict)

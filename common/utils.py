@@ -76,9 +76,9 @@ def page_calculate(request_data):
         start = int((draw - 1) * length)
     data_dict = {
         'draw': draw,
-        'recordsTotal': 0,
+        'total': 0,
         'recordsFiltered': 0,
-        'data': [],
+        'rows': [],
         'code': 0,
     }
     return data_dict, start, length
@@ -90,14 +90,14 @@ def admin_page_calculate_result(request_data=None, data=None):
     data_dict['code'] = 0
     data_dict['msg'] = 'success'
     try:
-        data_dict['recordsTotal'] = data_dict['recordsFiltered'] = len(data)
+        data_dict['total'] = data_dict['recordsFiltered'] = len(data)
         # data = data[int(start): int(start) + int(length)]
-        data_dict['data'] = []
+        data_dict['rows'] = []
     except Exception as ex:
         logger.exception(ex)
-        data_dict['recordsTotal'] = 0
+        data_dict['total'] = 0
         data_dict['recordsFiltered'] = 0
-        data_dict['data'] = []
+        data_dict['rows'] = []
         data_dict['code'] = 4000
         data_dict['msg'] = 'fail'
     return data_dict, data
