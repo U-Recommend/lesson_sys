@@ -72,6 +72,7 @@ def attendance_list(request):
     if request.method == "GET":
         user = request.user
         logger.info(request.GET)
+        logger.info(request.GET.get('draw'))
         filter_lesson = request.GET.get("filter_lesson")
         filter_grade = request.GET.get("filter_grade")
         filter_user = request.GET.get("filter_user")
