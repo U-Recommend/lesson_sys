@@ -42,3 +42,27 @@ class ProjectUser(MainModel):
     class Meta:
         verbose_name = "参与人"
         verbose_name_plural = verbose_name
+
+
+class PythonTrain(MainModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    code = models.TextField('代码', null=True, blank=True)
+
+    def __str__(self):
+        return self.user.name
+
+    class Meta:
+        verbose_name = "python练习"
+        verbose_name_plural = verbose_name
+
+
+class ScratchTrain(MainModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    code = models.TextField('代码', null=True, blank=True)
+
+    def __str__(self):
+        return self.user.name
+
+    class Meta:
+        verbose_name = "Scratch练习"
+        verbose_name_plural = verbose_name
