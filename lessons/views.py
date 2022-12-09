@@ -96,6 +96,7 @@ def attendance_list(request):
             data_dict, datas = admin_page_calculate_result(request_data=request, data=query)
             result = []
             for data in datas:
+                logger.info(data.id)
                 res = attendance_data(lesson=data, user=user)
                 result.append(res)
             data_dict['data'] = result
