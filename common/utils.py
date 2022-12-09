@@ -71,10 +71,11 @@ def page_calculate(request_data, data=None):
     except:
         length = 20
     start = int((draw - 1) * length)
+    total = len(data)
     data = data[int(start): int(start) + int(length)]
     data_dict = {
         'draw': draw,
-        'total': 0,
+        'total': total,
         'rows': [],
         'code': 0,
     }
