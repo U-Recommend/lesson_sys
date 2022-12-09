@@ -13,7 +13,7 @@ from lessons.serializers.lesson import lesson_filter
 
 def attendance_data(lesson=None, user=None):
     data = {
-        'date': lesson.lesson_date.strftime("%Y-%m-%d"),
+        'date': lesson.lesson_date.strftime("%Y-%m-%d") if lesson.lesson_date else "",
         'lesson_id': lesson.id,
         'lesson_name': lesson.course.title,
     }
