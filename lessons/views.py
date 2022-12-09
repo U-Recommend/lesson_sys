@@ -92,6 +92,7 @@ def attendance_list(request):
             query = query.filter(lesson_date__lte=date__lte)
         data_dict = {}
         try:
+            logger.info(query.count())
             data_dict, datas = admin_page_calculate_result(request_data=request, data=query)
             result = []
             for data in datas:
