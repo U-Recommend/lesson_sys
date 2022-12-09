@@ -3,6 +3,12 @@ from django.utils.html import mark_safe, format_html
 from projects.models import Project, ProjectFiles, ProjectUser
 
 
+class ProjectFilesInline(admin.TabularInline):
+    model = ProjectFiles
+    extra = 1
+    exclude = ('is_deleted',)
+
+
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'start_date', 'end_date', 'stuff_list')
     sortable_by = ()

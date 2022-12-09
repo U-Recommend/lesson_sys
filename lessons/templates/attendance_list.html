@@ -1,0 +1,236 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_list simpletags %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}?_=20180905"/>
+
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}"/>
+    <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+    {{ media.css }}
+    {% if not actions_on_top and not actions_on_bottom %}
+        <style>
+            #changelist table thead th:first-child {
+                width: inherit
+            }
+        </style>
+    {% endif %}
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    {{ media.js }}
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-list{% endblock %}
+
+{% if not is_popup %}
+    {% block breadcrumbs %}
+        <div class="breadcrumbs">
+            <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+            &rsaquo; <a
+                href="{% url 'admin:app_list' app_label='wxcustomer' %}">课程管理</a>
+            &rsaquo; 考勤管理
+        </div>
+    {% endblock %}
+{% endif %}
+
+{% block coltype %}flex{% endblock %}
+{% block content_title %}
+{% endblock %}
+
+{% block content %}
+    <style>
+        #content {
+            position: relative;
+        }
+
+        .object-tools {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            height: 50px;
+            z-index: 2;
+        }
+
+        .object-tools .import_link, .object-tools .export_link {
+            color: white !important;
+        }
+
+        .el-table td, .el-table th {
+            text-align: center !important;
+        }
+
+    </style>
+    <link rel="stylesheet" href="{% static '/js/bootstrap/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static '/js/datatables/jquery.dataTables.min.css' %}">
+    <link rel="stylesheet" href="{% static '/js/bootstrap-select/bootstrap-select.min.css' %}">
+    <link rel="stylesheet" href="{% static '/js/bootstrap-switch/bootstrap-switch.min.css' %}">
+
+    <div id="content-main">
+        <div class="module filtered" id="changelist">
+            <!-- search_form.html -->
+            <div id="toolbar">
+                <div id="changelist-search">
+                    <div class="simpleui-form">
+
+                        <select id="filter_lesson" class="el-select" style="width: 120px; margin-right: 10px;">
+                            <option value="">课程</option>
+                            {% for c in lessons %}
+                                <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+
+                        {% if user.is_superuser %}
+                            <select id="filter_grade" class="el-select" style="width: 120px; margin-right: 10px;">
+                                <option value="">班级</option>
+                                {% for c in grades %}
+                                    <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <select id="filter_user" class="el-select" style="width: 120px; margin-right: 10px;">
+                                <option value="">学生</option>
+                                {% for c in users %}
+                                    <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        {% endif %}
+
+                        <div class="el-date-editor el-range-editor el-input__inner simpleui-form-item el-date-editor--daterange el-range-editor--small">
+                            <input autocomplete="off" placeholder="日期" id="date__gte" type="date" name=""
+                                   class="el-range-input">
+                            <span class="el-range-separator">-</span>
+                            <input autocomplete="off" placeholder="日期" id="date__lte" type="date" name=""
+                                   class="el-range-input">
+                        </div>
+
+                        <button type="button" class="el-button el-button--primary el-button--small"
+                                id="data-search">
+                            <i class="el-icon-search"></i><span>搜索</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="changelist-form">
+                <div class="actions">
+                    <span class="r">共有数据：<strong id="total-count">0</strong> 条</span>
+                </div>
+
+
+                <div class="el-row" style="margin-bottom: 20px;">
+                    <table class="el-table el-table--border" id="data_list_table">
+                        <thead>
+                        <tr>
+                            <th width="50">上课日期</th>
+                            <th width="100">课程</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="/static/admin/simpleui-x/automatic/dicts.js"></script>
+    <script type="text/javascript" src="/static/admin/simpleui-x/automatic/segment.js"></script>
+    <script type="text/javascript" src="/static/admin/simpleui-x/js/axios.min.js"></script>
+    <script type="text/javascript" src="/static/js/moment.min.js"></script>
+
+    <script type="text/javascript" src="{% static '/js/bootstrap/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static '/js/layer/2.4/layer.js' %}"></script>
+    <script type="text/javascript" src="{% static '/js/datatables/1.10.0/jquery.dataTables.min.js' %}"></script>
+
+    <script src="{% static '/js/bootstrap-select/bootstrap-select.min.js' %}"></script>
+    <script src="{% static '/js/bootstrap-switch/bootstrap-switch.min.js' %}"></script>
+    <script type="text/javascript">
+        var date__gte_obj = $("#date__gte");
+        var date__lte_obj = $("#date__lte");
+
+        $("#date__lte").change(function () {
+            let x = date__gte_obj.val();
+            let dlte = date__lte_obj.val();
+            if (dlte && !x) {
+                layer.msg('请选择起始日期', {icon: 2, time: 1000});
+                $("#date__lte").val('');
+                return false
+            }
+        });
+
+        function get_today() {
+            var nowDate = new Date();
+            var month = nowDate.getMonth() + 1;
+            var day = nowDate.getDate();
+            month = (month.toString().length == 1) ? ("0" + month) : month;
+            day = (day.toString().length == 1) ? ("0" + day) : day;
+            //当前日期 yyyy-MM-dd
+            return nowDate.getFullYear() + '-' + month + '-' + day;
+        }
+
+
+        $.dataTablesSettings = {
+            searching: false,
+            responsive: true,
+            serverSide: true,
+            ordering: false,
+            ajax: {
+                url: '{% url "attendance_list" %}',
+                dataSrc: 'data',
+            },
+            columns: [
+                {"data": "date"},
+                {
+                    "data": "lesson_name", "render": function (data, type, full, meta) {
+                        let html = data;
+                        let lesson_url = "../lesson/" + full.lesson_id + "/change/";
+                        html += '<a target="_blank" style="margin-left:20px;" href=' + lesson_url + '><icon>去学习</icon></a>';
+                        return html
+                    }
+                }
+            ],
+            columnDefs: [
+                {
+                    "orderable": false,
+                    "targets": "_all"
+                },
+            ],
+        };
+
+        var datas_table = $("#data_list_table").on('xhr.dt', function (e, settings, json, xhr) {
+            // 查询总数渲染
+            $("#total-count").text(json.recordsTotal);
+        }).DataTable($.dataTablesSettings);
+
+        var datas_table_filter = function () {
+            let param = {
+                "filter_lesson": $("#filter_lesson").val(),
+                "date__gte": $("#date__gte").val(),
+                "date__lte": $("#date__lte").val(),
+                "filter_grade": $("#filter_grade").val(),
+                "filter_user": $("#filter_user").val(),
+            };
+            datas_table.settings()[0].ajax.data = param;
+            datas_table.ajax.reload();
+        };
+
+
+        // 查询搜索结果并充值表格
+        $('#data-search').click(function () {
+            datas_table_filter();
+        });
+
+
+        $(function () {
+            let today = get_today();
+            datas_table_filter();
+
+        });
+
+
+    </script>
+{% endblock %}

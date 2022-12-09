@@ -192,7 +192,21 @@ class HomeworkAdmin(admin.ModelAdmin):
         return False
 
 
+from lessons.views import attendance_list_page
+
+
+class AttendanceAdmin(admin.ModelAdmin):
+    pass
+
+    def changelist_view(self, request, extra_context=None):
+        return attendance_list_page(request)
+
+    def has_module_permission(self, request):
+        return True
+
+
 admin.site.register(Course, CourseAdmin)
 admin.site.register(Lesson, LessonAdmin)
 admin.site.register(Exercises, ExercisesAdmin)
 admin.site.register(Homework, HomeworkAdmin)
+admin.site.register(Attendance, AttendanceAdmin)
