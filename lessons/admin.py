@@ -109,18 +109,14 @@ class LessonAdmin(admin.ModelAdmin):
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
         user = request.user
-        if user.is_superuser:
-            logger.info("superuser")
-            return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url,
-                                                        extra_context=extra_context)
-        else:
+        if not user.is_superuser:
             self.change_form_template = "lessons/change_form.html"
             extra_context = extra_context or {}
             lesson = Lesson.objects.filter(id=object_id).first()
             extra_context['lesson'] = lesson
             extra_context['user'] = user
-            return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url,
-                                                        extra_context=extra_context)
+        return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url,
+                                                    extra_context=extra_context)
 
     def has_add_permission(self, request):
         if request.user.is_superuser:
