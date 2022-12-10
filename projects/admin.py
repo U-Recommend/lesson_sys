@@ -26,8 +26,8 @@ class ProjectAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super(ProjectAdmin, self).get_queryset(request)
         qs = qs.filter(is_deleted=0)
-        if not request.user.is_superuser:
-            qs = qs.filter(projectuser__user_id=request.user.id)
+        # if not request.user.is_superuser:
+        #     qs = qs.filter(projectuser__user_id=request.user.id)
         return qs
 
     def has_delete_permission(self, request, obj=None):
