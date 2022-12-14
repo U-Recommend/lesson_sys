@@ -24,6 +24,7 @@ urlpatterns = [
     # path('apis/v1/common/', include('common.urls')),
     path('apis/v1/lessons/', include('lessons.urls')),
     path('apis/v1/projects/', include('projects.urls')),
+    path('apis/v1/knowledge/', include('knowledges.urls')),
 
     re_path(r'media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 

@@ -1,0 +1,309 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_list simpletags %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/changelists.css' %}?_=20180905"/>
+
+    {% if cl.formset %}
+        <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}"/>
+    {% endif %}
+    {% if cl.formset or action_form %}
+        <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+    {% endif %}
+    {{ media.css }}
+    {% if not actions_on_top and not actions_on_bottom %}
+        <style>
+            #changelist table thead th:first-child {
+                width: inherit
+            }
+        </style>
+    {% endif %}
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    {{ media.js }}
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-list{% endblock %}
+
+{% if not is_popup %}
+    {% block breadcrumbs %}
+        <div class="breadcrumbs">
+            <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+            &rsaquo; <a
+                href="{% url 'admin:app_list' app_label=cl.opts.app_label %}">{{ cl.opts.app_config.verbose_name }}</a>
+            &rsaquo; {{ cl.opts.verbose_name_plural|capfirst }}
+        </div>
+    {% endblock %}
+{% endif %}
+
+{% block coltype %}flex{% endblock %}
+{% block content_title %}
+
+{% endblock %}
+{% block content %}
+    <style>
+        #content {
+            position: relative;
+        }
+
+        .object-tools {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            height: 50px;
+            z-index: 2;
+        }
+
+        .object-tools .import_link, .object-tools .export_link {
+            color: white !important;
+        }
+
+    </style>
+
+    <link rel="stylesheet" href="{% static '/js/bootstrap/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static '/js/datatables/jquery.dataTables.min.css' %}">
+    <link rel="stylesheet" href="{% static '/js/bootstrap-select/bootstrap-select.min.css' %}">
+    <link rel="stylesheet" href="{% static '/js/bootstrap-switch/bootstrap-switch.min.css' %}">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.css">
+
+
+    {% block object-tools %}
+        <ul class="object-tools">
+            {% block object-tools-items %}
+                {% if has_add_permission %}
+                    {{ block.super }}
+                {% endif %}
+            {% endblock %}
+        </ul>
+    {% endblock %}
+
+    <div id="content-main">
+
+    {% if cl.formset.errors %}
+        <p class="errornote">
+            {% if cl.formset.total_error_count == 1 %}{% trans "Please correct the error below." %}{% else %}
+                {% trans "Please correct the errors below." %}{% endif %}
+        </p>
+        {{ cl.formset.non_form_errors }}
+    {% endif %}
+
+
+
+    <div class="module filtered" id="changelist">
+
+        <!-- search_form.html -->
+        <div id="toolbar">
+            <div id="changelist-search">
+                <div class="simpleui-form" style="margin-left: 10px; margin-right: 10px;">
+                    <input type="text" class="" id="filter_name" placeholder="课程名称">
+
+                    <select id="filter_num" class="" style="width: 120px; margin-right: 10px;">
+                        <option value="">节次</option>
+                        {% for num in nums %}
+                            <option value="{{ num }}">{{ num }}</option>
+                        {% endfor %}
+                    </select>
+
+                    {% if user.is_superuser %}
+                        <select id="filter_grade" class="el-select" style="width: 120px; margin-right: 10px;">
+                            <option value="">班级</option>
+                            {% for grade in grades %}
+                                <option value="{{ grade.id }}">{{ grade.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <select id="filter_status" class="el-select" style="width: 120px; margin-right: 10px;">
+                            <option value="">状态</option>
+                            {% for status in statuss %}
+                                <option value="{{ status.id }}">{{ status.name }}</option>
+                            {% endfor %}
+                        </select>
+
+                    {% endif %}
+
+                    <div class="el-date-editor el-range-editor el-input__inner simpleui-form-item el-date-editor--daterange el-range-editor--small">
+                        <input autocomplete="off" placeholder="日期" id="date__gte" type="date" name=""
+                               class="el-range-input">
+                        <span class="el-range-separator">-</span>
+                        <input autocomplete="off" placeholder="日期" id="date__lte" type="date" name=""
+                               class="el-range-input">
+                    </div>
+
+                    <button type="button" class="el-button el-button--primary el-button--small"
+                            id="data-search">
+                        <i class="el-icon-search"></i><span>搜索</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="changelist-form">
+            <div class="actions">
+                {% if user.is_superuser %}
+                    <button type="button" class="el-button el-button--primary el-button--small"
+                            onclick="new_lesson()">
+                        <span>新增</span>
+                    </button>
+                {% endif %}
+
+                <span style="position: absolute; right: 10px;font-size: 16px; color: red;">{{ lessons_notice }}</span>
+            </div>
+
+
+            <div class="el-row" style="margin-bottom: 20px;">
+                <table class="el-table el-table--border" id="data_list_table">
+                    <thead>
+                    <tr>
+                        <th width="20%">节次</th>
+                        <th width="50%">课程</th>
+                        <th width="30%">上课时间</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="text/javascript" src="/static/admin/simpleui-x/automatic/dicts.js"></script>
+    <script type="text/javascript" src="/static/admin/simpleui-x/automatic/segment.js"></script>
+    <script type="text/javascript" src="/static/admin/simpleui-x/js/axios.min.js"></script>
+    <script type="text/javascript" src="/static/js/moment.min.js"></script>
+
+    <script type="text/javascript" src="{% static '/js/bootstrap/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static '/js/layer/2.4/layer.js' %}"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.js"></script>
+    <!-- Latest compiled and minified Locales -->
+    <script src="https://unpkg.com/bootstrap-table@1.21.1/dist/locale/bootstrap-table-zh-CN.min.js"></script>
+    <script type="text/javascript" src="{% static '/js/table_common.js' %}"></script>
+
+    <script type="text/javascript">
+        {% if user.is_superuser %}
+            var is_superuser = true;
+        {% else %}
+            var is_superuser = false;
+        {% endif %}
+        console.log(is_superuser);
+
+        var table_obj = $("#data_list_table");
+        var table_setting = {
+            url: '{% url "lesson_list" %}',
+            mehtod: 'GET',
+            queryParams(params) {
+                return {
+                    "draw": params.pageNumber,
+                    "length": params.pageSize,
+                    "filter_name": $("#filter_name").val(),
+                    "filter_num": $("#filter_num").val(),
+                    "filter_grade": $("#filter_grade").val(),
+                    "filter_status": $("#filter_status").val(),
+                    "date__lte": $("#date__lte").val(),
+                    "date__gte": $("#date__gte").val(),
+                }
+            },
+            columns: [{
+                field: 'num',
+                name: 'num',
+                title: '节次',
+                align: 'center',
+                sortable: false,
+                width: 20,
+                widthUnit: "%",
+            }, {
+                field: 'lesson_name',
+                name: 'lesson_name',
+                align: 'center',
+                title: '课程',
+                width: 60,
+                widthUnit: "%",
+                formatter: function (value, row, index) {
+                    let html = '<span style="float: left;">' + value + '</span>';
+                    let lesson_url = "../lesson/" + row.lesson_id + "/change/";
+                    html += "<span style='float:right;'>";
+                    if (is_superuser == false) {
+                        html += '<button  style="margin-right:20px;" class="btn btn-default btn-xs" onclick="open_detail(\'' + lesson_url + '\')"><span class="glyphicon glyphicon-book" aria-hidden="true" style="margin-right:5px;"></span>去学习</button>';
+                    } else {
+                        html += '<button  style="margin-right:20px;" class="btn btn-default btn-xs" onclick="open_detail(\'' + lesson_url + '\')"><span class="glyphicon glyphicon-book" aria-hidden="true" style="margin-right:5px;"></span>编辑</button>';
+                        if (row.lesson_status == true) {
+                            html += '<button  style="margin-right:10px;" class="btn btn-default btn-xs" onclick="lesson_change_status(' + row.lesson_id + ', 0)"><span class="glyphicon glyphicon-remove" aria-hidden="true" style="margin-right:5px;"></span>隐藏</button>';
+                        } else {
+                            html += '<button  style="margin-right:10px;" class="btn btn-default btn-xs" onclick="lesson_change_status(' + row.lesson_id + ', 1)"><span class="glyphicon glyphicon-ok" aria-hidden="true" style="margin-right:5px;"></span>显示</button>';
+                        }
+                        html += '<button  style="margin-right:10px;" class="btn btn-default btn-xs" onclick="lesson_delete(' + row.lesson_id + ', 1)"><span class="glyphicon glyphicon-trash" aria-hidden="true" style="margin-right:5px;"></span>删除</button>';
+                    }
+                    html += '</span>';
+                    return html;
+                }
+            }, {
+                field: 'lesson_date',
+                name: 'lesson_date',
+                title: '上课时间',
+                align: 'center',
+                sortable: false,
+                width: 20,
+                widthUnit: "%",
+            }],
+
+        };
+        table_setting = $.extend(tableSettings, table_setting);
+        table_obj.bootstrapTable('destroy');
+        table_obj.bootstrapTable(table_setting);
+
+        // 查询搜索结果并充值表格
+        $('#data-search').click(function () {
+            table_obj.bootstrapTable('destroy');
+            table_obj.bootstrapTable(table_setting);
+
+        });
+
+        function new_lesson() {
+            window.location = '/admin/lessons/lesson/add/';
+        }
+
+        function open_detail(url) {
+            window.open(url);
+        }
+
+        function lesson_change_status(lesson_id, status) {
+
+            layer.confirm("确定要修改状态吗?", function (i) {
+                let data = {"lesson_id": lesson_id, 'status': status};
+                console.log(data);
+                axios.post('{% url "lesson_status_change" %}', data).then(res => {
+                    console.log(res.data);
+                    let icon_type = res.data.code === 0 ? 1 : 2;
+                    layer.msg(res.data.msg, {time: 1000, icon: icon_type});
+                    if (res.data.code == 0) {
+                        layer.close(i);
+                        setTimeout(() => window.location.reload(), 1000)
+                    }
+                })
+            })
+        }
+
+        function lesson_delete(lesson_id) {
+            layer.confirm("确定要删除吗?", function (i) {
+                let data = {"lesson_id": lesson_id};
+                axios.post('{% url "lesson_delete" %}', data).then(res => {
+                    console.log(res.data);
+                    let icon_type = res.data.code === 0 ? 1 : 2;
+                    layer.msg(res.data.msg, {time: 1000, icon: icon_type});
+                    if (res.data.code == 0) {
+                        layer.close(i);
+                        setTimeout(() => window.location.reload(), 1000)
+                    }
+                })
+            })
+        }
+
+    </script>
+{% endblock %}

@@ -30,8 +30,8 @@
         <div class="breadcrumbs">
             <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
             &rsaquo; <a
-                href="{% url 'admin:app_list' app_label='wxcustomer' %}">课程管理</a>
-            &rsaquo; 考勤管理
+                href="{% url 'admin:app_list' app_label='wxcustomer' %}">教程管理</a>
+            &rsaquo; Python教程
         </div>
     {% endblock %}
 {% endif %}
@@ -77,36 +77,18 @@
             <div id="toolbar">
                 <div id="changelist-search">
                     <div class="simpleui-form">
+                        <input type="text" class="" id="filter_name" placeholder="教程名称">
 
-                        <select id="filter_lesson" class="el-select" style="width: 120px; margin-right: 10px;">
-                            <option value="">课程</option>
-                            {% for c in lessons %}
-                                <option value="{{ c.id }}">{{ c.name }}</option>
+                        <select id="filter_knowledge" class="el-select" style="width: 120px; margin-right: 10px;">
+                            <option value="">教程</option>
+                            {% for c in knowledges %}
+                                {% if c.parent_name %}
+                                    <option value="{{ c.id }}">--- {{ c.name }}</option>
+                                {% else %}
+                                    <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endif %}
                             {% endfor %}
                         </select>
-
-                        {% if user.is_superuser %}
-                            <select id="filter_grade" class="el-select" style="width: 120px; margin-right: 10px;">
-                                <option value="">班级</option>
-                                {% for c in grades %}
-                                    <option value="{{ c.id }}">{{ c.name }}</option>
-                                {% endfor %}
-                            </select>
-                            <select id="filter_user" class="el-select" style="width: 120px; margin-right: 10px;">
-                                <option value="">学生</option>
-                                {% for c in users %}
-                                    <option value="{{ c.id }}">{{ c.name }}</option>
-                                {% endfor %}
-                            </select>
-                        {% endif %}
-
-                        <div class="el-date-editor el-range-editor el-input__inner simpleui-form-item el-date-editor--daterange el-range-editor--small">
-                            <input autocomplete="off" placeholder="日期" id="date__gte" type="date" name=""
-                                   class="el-range-input">
-                            <span class="el-range-separator">-</span>
-                            <input autocomplete="off" placeholder="日期" id="date__lte" type="date" name=""
-                                   class="el-range-input">
-                        </div>
 
                         <button type="button" class="el-button el-button--primary el-button--small"
                                 id="data-search">
@@ -118,13 +100,22 @@
 
 
             <div id="changelist-form">
+                <div class="actions">
+                    {% if user.is_superuser %}
+                        <button type="button" class="el-button el-button--primary el-button--small"
+                                onclick="new_knowledge()">
+                            <span>新增</span>
+                        </button>
+                    {% endif %}
+
+                </div>
 
                 <div class="el-row" style="margin-bottom: 20px;">
                     <table class="el-table el-table--border" id="data_list_table">
                         <thead>
                         <tr>
-                            <th width="50">上课日期</th>
-                            <th width="100">课程</th>
+                            <th data-withd="80" date-width-unit="%">标题</th>
+                            <th data-withd="20" date-width-unit="%">操作</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -152,60 +143,74 @@
     <script type="text/javascript" src="{% static '/js/table_common.js' %}"></script>
 
     <script type="text/javascript">
-        var date__gte_obj = $("#date__gte");
-        var date__lte_obj = $("#date__lte");
+        {% if user.is_superuser %}
+            var is_superuser = true;
+        {% else %}
+            var is_superuser = false;
+        {% endif %}
 
-        $("#date__lte").change(function () {
-            let x = date__gte_obj.val();
-            let dlte = date__lte_obj.val();
-            if (dlte && !x) {
-                layer.msg('请选择起始日期', {icon: 2, time: 1000});
-                $("#date__lte").val('');
-                return false
-            }
-        });
+        function get_today() {
+            var nowDate = new Date();
+            var month = nowDate.getMonth() + 1;
+            var day = nowDate.getDate();
+            month = (month.toString().length == 1) ? ("0" + month) : month;
+            day = (day.toString().length == 1) ? ("0" + day) : day;
+            //当前日期 yyyy-MM-dd
+            return nowDate.getFullYear() + '-' + month + '-' + day;
+        }
+
 
         var table_obj = $("#data_list_table");
         var table_setting = {
-            url: '{% url "attendance_list" %}',
+            url: '{% url "knowledge_list" %}',
             mehtod: 'GET',
             queryParams(params) {
                 return {
                     "draw": params.pageNumber,
                     "length": params.pageSize,
-                    "filter_lesson": $("#filter_lesson").val(),
-                    "date__gte": $("#date__gte").val(),
-                    "date__lte": $("#date__lte").val(),
-                    "filter_grade": $("#filter_grade").val(),
-                    "filter_user": $("#filter_user").val(),
+                    "filter_name": $("#filter_name").val(),
+                    "filter_knowledge": $("#filter_knowledge").val(),
                 }
             },
             columns: [{
-                field: 'date',
-                name: 'date',
-                title: '上课日期',
+                field: 'title',
+                name: 'title',
+                title: '教程',
                 align: 'center',
                 sortable: false,
-                width: 30,
-                widthUnit: "%",
-            }, {
-                field: 'lesson_name',
-                name: 'lesson_name',
-                align: 'center',
-                title: '课程',
                 width: 70,
                 widthUnit: "%",
                 formatter: function (value, row, index) {
-                    let html = '<span style="float: left;">' + value + '</span>';
-                    let lesson_url = "../lesson/" + row.lesson_id + "/change/";
-                    html += "<span style='float:right;'>";
-                    html += '<button  style="margin-right:20px;" class="btn btn-default btn-xs" onclick="open_detail(\'' + lesson_url + '\')"><span class="glyphicon glyphicon-book" aria-hidden="true" style="margin-right:5px;"></span>去学习</button>';
-                    html += '</span>';
+                    let html = "";
+                    if (row.parent_id) {
+                        html = "<span style='float:left'> --- " + value + "</span>"
+                    } else {
+                        html = "<span style='float:left'>" + value + "</span>"
+                    }
+                    return html;
+                }
+            }, {
+                field: 'id',
+                name: 'id',
+                title: '操作',
+                align: 'center',
+                width: 30,
+                widthUnit: "%",
+                formatter: function (value, row, index) {
+                    let html = "";
+                    let knowledge_url = "../knowledge/" + row.id + "/change/";
+                    if (is_superuser == false) {
+                        html += '<button  style="margin-left:20px;" class="btn btn-default btn-xs" onclick="open_detail(\'' + knowledge_url + '\')"><span class="glyphicon glyphicon-book" aria-hidden="true" style="margin-right:5px;"></span>去学习</button>';
+                    } else {
+                        html += '<button  style="margin-left:20px;" class="btn btn-default btn-xs" onclick="open_detail(\'' + knowledge_url + '\')"><span class="glyphicon glyphicon-book" aria-hidden="true" style="margin-right:5px;"></span>编辑</button>';
+                        html += '<button  style="margin-left:10px;" class="btn btn-default btn-xs" onclick="knowledge_delete(' + row.id + ', 1)"><span class="glyphicon glyphicon-trash" aria-hidden="true" style="margin-right:5px;"></span>删除</button>';
+                    }
                     return html;
                 }
             }],
 
         };
+        table_setting = $.extend(tableSettings, table_setting);
         table_obj.bootstrapTable('destroy');
         table_obj.bootstrapTable(table_setting);
 
@@ -216,10 +221,33 @@
 
         });
 
+
+        $(function () {
+            let today = get_today();
+        });
+
+        function new_knowledge() {
+            window.location = '/admin/knowledges/knowledge/add/';
+        }
+
         function open_detail(url) {
             window.open(url);
         }
 
+        function knowledge_delete(lesson_id) {
+            layer.confirm("确定要删除吗?", function (i) {
+                let data = {"id": lesson_id};
+                axios.post('{% url "knowledge_delete" %}', data).then(res => {
+                    console.log(res.data);
+                    let icon_type = res.data.code === 0 ? 1 : 2;
+                    layer.msg(res.data.msg, {time: 1000, icon: icon_type});
+                    if (res.data.code == 0) {
+                        layer.close(i);
+                        setTimeout(() => window.location.reload(), 1000)
+                    }
+                })
+            })
+        }
 
     </script>
 {% endblock %}

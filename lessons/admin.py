@@ -62,51 +62,54 @@ class ExercisesAdmin(admin.ModelAdmin):
         return False
 
 
+from lessons.views import lesson_list_page
+
+
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ('id', 'grade', 'num', 'title', 'lesson_date')
-    search_fields = ('titles',)
-    list_filter = ('grade', 'num')
+    # list_display = ('id', 'grade', 'num', 'title', 'lesson_date')
+    # search_fields = ('titles',)
+    # list_filter = ('grade', 'num')
     exclude = ('is_deleted',)
-    actions_selection_counter = False
-    sortable_by = ()
+    # actions_selection_counter = False
+    # sortable_by = ()
     filter_horizontal = ('user', 'exercises')
-    show_full_result_count = False
-
-    def title(self, obj):
-        return format_html(obj.course.title)
-
-    title.short_description = "名称"
-
-    def grade_name(self, obj):
-        qs = Lesson.objects.filter(lesson_id=obj.id, is_deleted=0).values_list('name', flat=True)
-        res = '<br/>'.join(list(qs))
-        return format_html(res)
-
-    grade_name.short_description = "班级"
-
-    def get_search_results(self, request, queryset, search_term):
-        queryset, use_distinct = super(LessonAdmin, self).get_search_results(request, queryset, search_term)
-        try:
-            queryset &= (self.model.objects.filter(course__title__icontains=search_term))
-        except:
-            pass
-        return queryset, use_distinct
-
-    def get_queryset(self, request):
-        qs = super(LessonAdmin, self).get_queryset(request)
-        # qs = qs.filter(is_deleted=0)
-        if not request.user.is_superuser:
-            qs = qs.filter(grade_id=request.user.grade_id, status=1).order_by('-num')
-        return qs
-
-    def changelist_view(self, request, extra_context=None):
-        if not request.user.is_superuser:
-            self.list_display = ('num', 'title', 'lesson_date')
-            self.list_display_links = ('title',)
-            self.search_fields = ('title',)
-            self.list_filter = ('num',)
-        return super(LessonAdmin, self).changelist_view(request, extra_context=extra_context)
-
+    # show_full_result_count = False
+    #
+    # def title(self, obj):
+    #     return format_html(obj.course.title)
+    #
+    # title.short_description = "名称"
+    #
+    # def grade_name(self, obj):
+    #     qs = Lesson.objects.filter(lesson_id=obj.id, is_deleted=0).values_list('name', flat=True)
+    #     res = '<br/>'.join(list(qs))
+    #     return format_html(res)
+    #
+    # grade_name.short_description = "班级"
+    #
+    # def get_search_results(self, request, queryset, search_term):
+    #     queryset, use_distinct = super(LessonAdmin, self).get_search_results(request, queryset, search_term)
+    #     try:
+    #         queryset &= (self.model.objects.filter(course__title__icontains=search_term))
+    #     except:
+    #         pass
+    #     return queryset, use_distinct
+    #
+    # def get_queryset(self, request):
+    #     qs = super(LessonAdmin, self).get_queryset(request)
+    #     # qs = qs.filter(is_deleted=0)
+    #     if not request.user.is_superuser:
+    #         qs = qs.filter(grade_id=request.user.grade_id, status=1).order_by('-num')
+    #     return qs
+    #
+    # def changelist_view(self, request, extra_context=None):
+    #     if not request.user.is_superuser:
+    #         self.list_display = ('num', 'title', 'lesson_date')
+    #         self.list_display_links = ('title',)
+    #         self.search_fields = ('title',)
+    #         self.list_filter = ('num',)
+    #     return super(LessonAdmin, self).changelist_view(request, extra_context=extra_context)
+    #
     def change_view(self, request, object_id, form_url="", extra_context=None):
         user = request.user
         if not user.is_superuser:
@@ -117,6 +120,9 @@ class LessonAdmin(admin.ModelAdmin):
             extra_context['user'] = user
         return super(LessonAdmin, self).change_view(request, object_id, form_url=form_url,
                                                     extra_context=extra_context)
+
+    def changelist_view(self, request, extra_context=None):
+        return lesson_list_page(request)
 
     def has_add_permission(self, request):
         if request.user.is_superuser:

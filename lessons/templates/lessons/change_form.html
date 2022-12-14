@@ -37,9 +37,18 @@
 {% block content %}
     <div id="content-main">
 
-        {% block submit_buttons_bottom %}
-            {% submit_row %}
-        {% endblock %}
+        {% if user.is_superuser %}
+            {% block submit_buttons_bottom %}
+                {% submit_row %}
+            {% endblock %}
+        {% else %}
+            <div class="submit-row">
+                <button type="submit" class="el-button el-button--primary el-button--small" name="_continue"
+                        onclick="close_page()">
+                    关闭
+                </button>
+            </div>
+        {% endif %}
 
         <input type="text" id="user_id" value="{{ user.id }}" hidden>
         <input type="text" id="lesson_id" value="{{ lesson.id }}" hidden>
@@ -177,6 +186,11 @@
         run_btn_obj.hide();
         need_code_obj.val(0);
         need_answer_obj.val(0);
+
+        // 关闭当前页
+        function close_page() {
+            window.close();
+        }
 
         $(function () {
 
