@@ -320,6 +320,7 @@
                 'user_id': uid_obj.val(),
                 'exercises_id': eid,
             };
+            console.log(data);
             $.get('{% url "exercises_detail" %}', data, function (res) {
                 console.log(res);
                 if (res.code == 0) {
