@@ -312,6 +312,16 @@
         need_code_obj.val(0);
         need_answer_obj.val(0);
 
+        var editor = CodeMirror.fromTextArea(train_code_obj, {
+            mode: "python",
+            lineNumbers: true,
+            smartIndent: true,
+            tabSize: 4,
+            theme: 'seti',
+        });
+        editor.setSize(null, 500);
+
+
         function open_detail(eid) {
             has_comment_obj.hide();
 
