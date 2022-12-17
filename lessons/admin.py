@@ -195,7 +195,7 @@ class HomeworkAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         if request.user.is_superuser:
             return super(HomeworkAdmin, self).changelist_view(request, extra_context=extra_context)
-        return lesson_list_page(request)
+        return student_homework_list_page(request)
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
         user = request.user
