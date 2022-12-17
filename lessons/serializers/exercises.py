@@ -48,3 +48,15 @@ def exercises_data(eid=None, exercises=None, uid=None, lesson_id=None):
         if homework.comment:
             data['comment'] = homework.comment
     return data
+
+
+def student_exercises_data(uid=None, exercises=None):
+    homework = Homework.objects.filter(is_deleted=0, user_id=uid, exercises_id=exercises.id).first()
+    data = {
+        'sort': exercises.sort,
+        'title': exercises.title or '',
+        'homework_status': '否' if not homework else '是',
+        'comment': homework.comment if homework and homework.comment else '',
+        'homework_date': exercises.created.strftime("%Y年%m月%d日")
+    }
+    return data

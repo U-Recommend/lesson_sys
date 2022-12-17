@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from common.utils import common_response, logger, page_calculate
 from common.models import User, Grade, STATUS
 from lessons.models import Exercises, Homework, Lesson
-from lessons.serializers.exercises import exercises_data
+from lessons.serializers.exercises import exercises_filter, exercises_data, student_exercises_data
 from lessons.serializers.homework import stdoutIO, homework_create_or_update
 from lessons.serializers.lesson import lesson_filter, lesson_data
 from lessons.serializers.attendance import attendance_data
@@ -188,6 +188,38 @@ def attendance_list(request):
             for data in datas:
                 logger.info(data.id)
                 res = attendance_data(lesson=data, user=user)
+                result.append(res)
+            data_dict['rows'] = result
+        except Exception as ex:
+            logger.exception(ex)
+        return JsonResponse(data_dict)
+
+
+# 学生端作业列表
+def student_homework_list(request):
+    if request.method == "GET":
+        user = request.user
+        logger.info(request.GET)
+        logger.info(request.GET.get('draw'))
+        filter_name = request.GET.get("filter_name")
+        date__gte = request.GET.get('date__gte')
+        date__lte = request.GET.get('date__lte')
+        query = exercises_filter().filter(is_alone=1)
+        if filter_name:
+            query = query.filter(title__icontains=filter_name)
+        if date__gte:
+            query = query.filter(created__gte=date__gte)
+        if date__lte:
+            query = query.filter(created__lte=date__lte)
+        query = query.order_by('-sort')
+        data_dict = {}
+        try:
+            logger.info(query.count())
+            data_dict, datas = page_calculate(request_data=request.GET, data=query)
+            result = []
+            for data in datas:
+                logger.info(data.id)
+                res = student_exercises_data(exercises=data, uid=user.id)
                 result.append(res)
             data_dict['rows'] = result
         except Exception as ex:
