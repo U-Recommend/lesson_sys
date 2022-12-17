@@ -24,7 +24,10 @@ def stdoutIO(stdout=None):
 
 
 def homework_create_or_update(user_id, exercises_id, lesson_id, code=None, content=None):
-    homework = Homework.objects.filter(user_id=user_id, lesson_id=lesson_id, exercises_id=exercises_id).first()
+    homework = Homework.objects.filter(user_id=user_id, exercises_id=exercises_id)
+    if lesson_id:
+        homework = homework.filter(lesson_id=lesson_id)
+    homework = homework.first()
     if homework:
         homework.code = code
         homework.content = content
