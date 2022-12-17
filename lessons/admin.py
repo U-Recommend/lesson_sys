@@ -73,6 +73,7 @@ class LessonAdmin(admin.ModelAdmin):
     # actions_selection_counter = False
     # sortable_by = ()
     filter_horizontal = ('user', 'exercises')
+
     # show_full_result_count = False
     #
     # def title(self, obj):
@@ -195,9 +196,24 @@ class HomeworkAdmin(admin.ModelAdmin):
             extra_context = extra_context or {}
             extra_context['user'] = user
         return super(HomeworkAdmin, self).change_view(request, object_id, form_url=form_url,
-                                                    extra_context=extra_context)
+                                                      extra_context=extra_context)
 
-    def has_module_permission(self, request):
+    # def has_module_permission(self, request):
+    #     if request.user.is_superuser:
+    #         return True
+    #     return False
+
+    def has_add_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        return False
+
+    def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
         return False

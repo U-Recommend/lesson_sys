@@ -95,7 +95,7 @@
 
 
     <div class="module filtered" id="changelist">
-
+        <input type="text" id="user_id" hidden>
         <!-- search_form.html -->
         <div id="toolbar">
             <div id="changelist-search">
@@ -291,7 +291,6 @@
 
 
         var uid_obj = $("#user_id");
-        var lid_obj = $("#lesson_id");
         var eid_obj = $("#exercises_id");
         var homework_code_obj = document.getElementById("homework_code");
         //var code_result_obj = $("#code_result");
@@ -386,7 +385,6 @@
                 "code": code,
                 'content': homework_content,
                 "uid": uid_obj.val(),
-                "lid": lid_obj.val(),
                 'eid': eid_obj.val(),
             };
             console.log(data);
