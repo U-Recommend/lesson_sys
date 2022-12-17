@@ -161,12 +161,12 @@ class HomeworkAdmin(admin.ModelAdmin):
     user_name.short_description = "学生姓名"
 
     def lesson_title(self, obj):
-        return format_html(obj.lesson.course.title)
+        return format_html(obj.lesson.course.title) if obj.lesson else ""
 
     lesson_title.short_description = "课程名称"
 
     def exercises_title(self, obj):
-        return format_html(obj.exercises.title)
+        return format_html(obj.exercises.title) if obj.exercises else ""
 
     exercises_title.short_description = "作业名称"
 
