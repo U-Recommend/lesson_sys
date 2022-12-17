@@ -1,0 +1,433 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_list simpletags %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/changelists.css' %}?_=20180905"/>
+
+    {% if cl.formset %}
+        <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}"/>
+    {% endif %}
+    {% if cl.formset or action_form %}
+        <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+    {% endif %}
+    {{ media.css }}
+    {% if not actions_on_top and not actions_on_bottom %}
+        <style>
+            #changelist table thead th:first-child {
+                width: inherit
+            }
+        </style>
+    {% endif %}
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    {{ media.js }}
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-list{% endblock %}
+
+{% if not is_popup %}
+    {% block breadcrumbs %}
+        <div class="breadcrumbs">
+            <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+            &rsaquo; <a
+                href="{% url 'admin:app_list' app_label=cl.opts.app_label %}">{{ cl.opts.app_config.verbose_name }}</a>
+            &rsaquo; {{ cl.opts.verbose_name_plural|capfirst }}
+        </div>
+    {% endblock %}
+{% endif %}
+
+{% block coltype %}flex{% endblock %}
+{% block content_title %}
+
+{% endblock %}
+{% block content %}
+    <style>
+        #content {
+            position: relative;
+        }
+
+        .object-tools {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            height: 50px;
+            z-index: 2;
+        }
+
+        .object-tools .import_link, .object-tools .export_link {
+            color: white !important;
+        }
+
+    </style>
+
+    <link rel="stylesheet" href="{% static '/js/bootstrap/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static '/js/datatables/jquery.dataTables.min.css' %}">
+    <link rel="stylesheet" href="{% static '/js/bootstrap-select/bootstrap-select.min.css' %}">
+    <link rel="stylesheet" href="{% static '/js/bootstrap-switch/bootstrap-switch.min.css' %}">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.css">
+
+
+    {% block object-tools %}
+        <ul class="object-tools">
+            {% block object-tools-items %}
+                {% if has_add_permission %}
+                    {{ block.super }}
+                {% endif %}
+            {% endblock %}
+        </ul>
+    {% endblock %}
+
+    <div id="content-main">
+
+    {% if cl.formset.errors %}
+        <p class="errornote">
+            {% if cl.formset.total_error_count == 1 %}{% trans "Please correct the error below." %}{% else %}
+                {% trans "Please correct the errors below." %}{% endif %}
+        </p>
+        {{ cl.formset.non_form_errors }}
+    {% endif %}
+
+
+
+    <div class="module filtered" id="changelist">
+
+        <!-- search_form.html -->
+        <div id="toolbar">
+            <div id="changelist-search">
+                <div class="simpleui-form" style="margin-left: 10px; margin-right: 10px;">
+                    <input type="text" class="" id="filter_name" placeholder="作业名称">
+
+                    <div class="el-date-editor el-range-editor el-input__inner simpleui-form-item el-date-editor--daterange el-range-editor--small">
+                        <input autocomplete="off" placeholder="日期" id="date__gte" type="date" name=""
+                               class="el-range-input">
+                        <span class="el-range-separator">-</span>
+                        <input autocomplete="off" placeholder="日期" id="date__lte" type="date" name=""
+                               class="el-range-input">
+                    </div>
+
+                    <button type="button" class="el-button el-button--primary el-button--small"
+                            id="data-search">
+                        <i class="el-icon-search"></i><span>搜索</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="changelist-form">
+            <div class="actions">
+            </div>
+
+            <div class="el-row" style="margin-bottom: 20px;">
+                <table class="el-table el-table--border" id="data_list_table">
+                    <thead>
+                    <tr>
+                        <th>编号</th>
+                        <th>作业名称</th>
+                        <th>是否完成</th>
+                        <th>老师评语</th>
+                        <th>提交时间</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="homework_detail" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
+         data-backdrop="static">
+        <div class="modal-dialog modal-lg" role="document" style="width: 100%;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <input type="text" id="exercises_id" hidden>
+                    <input type="text" id="need_code" hidden>
+                    <input type="text" id="need_answer" hidden>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exercises_title"></h4>
+                </div>
+                <div class="modal-body">
+
+                    <p class="col-md-12 lead" id="exercises_content">
+
+                    </p>
+                    <div style="margin-bottom: 10px;" id="python_modal">
+                        <div class="col-md-6">
+                            <textarea class="form-control" rows="10" id="homework_code">
+                            </textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <pre id="code_result" style="height: 300px;"></pre>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 10px;" id="scratch_modal">
+                        <div class="col-md-6">
+                            <textarea class="form-control" rows="10" id="homework_code">
+                            </textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <pre id="code_result" style="height: 300px;"></pre>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                            <textarea class="form-control ck-editor" rows="10" id="normal_homework_result">
+                            </textarea>
+                    </div>
+
+                    <div class="col-md-12" id="has_comment">
+                        <h5>评语</h5>
+                        <div class="col-md-12" style="margin-bottom:20px;" id="homework_comment">
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary " onclick="runit()" id="run_btn"> 运行</button>
+                    <button type="button" class="btn btn-primary" onclick="save_code()"> 保存</button>
+                    <!--<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>-->
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="/static/admin/simpleui-x/automatic/dicts.js"></script>
+    <script type="text/javascript" src="/static/admin/simpleui-x/automatic/segment.js"></script>
+    <script type="text/javascript" src="/static/admin/simpleui-x/js/axios.min.js"></script>
+    <script type="text/javascript" src="/static/js/moment.min.js"></script>
+
+    <script type="text/javascript" src="{% static '/js/bootstrap/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static '/js/layer/2.4/layer.js' %}"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.js"></script>
+    <!-- Latest compiled and minified Locales -->
+    <script src="https://unpkg.com/bootstrap-table@1.21.1/dist/locale/bootstrap-table-zh-CN.min.js"></script>
+    <script type="text/javascript" src="{% static '/js/table_common.js' %}"></script>
+
+    <script type="text/javascript">
+
+
+        var table_obj = $("#data_list_table");
+        var table_setting = {
+            url: '{% url "student_homework_list" %}',
+            mehtod: 'GET',
+            queryParams(params) {
+                return {
+                    "draw": params.pageNumber,
+                    "length": params.pageSize,
+                    "filter_name": $("#filter_name").val(),
+                    "date__lte": $("#date__lte").val(),
+                    "date__gte": $("#date__gte").val(),
+                }
+            },
+            columns: [{
+                field: 'sort',
+                name: 'sort',
+                title: '编号',
+                align: 'center',
+                sortable: false,
+                width: 10,
+                widthUnit: "%",
+            }, {
+                field: 'title',
+                name: 'title',
+                align: 'center',
+                title: '作业名称',
+                width: 50,
+                widthUnit: "%",
+                formatter: function (value, row, index) {
+                    let html = '<span style="float: left;">' + value + '</span>';
+                    html += "<span style='float:right;'>";
+                    html += '<button  style="margin-right:20px;" class="btn btn-default btn-xs" onclick="open_detail(\'' + row.id + '\')"><span class="glyphicon glyphicon-book" aria-hidden="true" style="margin-right:5px;"></span>做练习</button>';
+                    html += '</span>';
+                    return html;
+                }
+            }, {
+                field: 'homework_status',
+                name: 'homework_status',
+                title: '是否完成',
+                align: 'center',
+                sortable: false,
+                width: 10,
+                widthUnit: "%",
+            }, {
+                field: 'comment',
+                name: 'comment',
+                title: '老师评语',
+                align: 'center',
+                sortable: false,
+                width: 20,
+                widthUnit: "%",
+            }, {
+                field: 'homework_date',
+                name: 'homework_date',
+                title: '提交时间',
+                align: 'center',
+                sortable: false,
+                width: 10,
+                widthUnit: "%",
+            },],
+
+        };
+        table_setting = $.extend(tableSettings, table_setting);
+        table_obj.bootstrapTable('destroy');
+        table_obj.bootstrapTable(table_setting);
+
+        // 查询搜索结果并充值表格
+        $('#data-search').click(function () {
+            table_obj.bootstrapTable('destroy');
+            table_obj.bootstrapTable(table_setting);
+
+        });
+
+
+        var uid_obj = $("#user_id");
+        var lid_obj = $("#lesson_id");
+        var eid_obj = $("#exercises_id");
+        var homework_code_obj = document.getElementById("homework_code");
+        //var code_result_obj = $("#code_result");
+        var code_result_obj = document.getElementById("code_result");
+        var exercises_title_obj = $("#exercises_title");
+        var exercises_content_obj = $("#exercises_content");
+        var has_comment_obj = $("#has_comment");
+        var homework_comment_obj = $("#homework_comment");
+        var python_modal_obj = $("#python_modal");
+        var scratch_modal_obj = $("#scratch_modal");
+        var normal_homework_result_obj = $("#normal_homework_result");
+        var run_btn_obj = $("#run_btn");
+        var need_code_obj = $("#need_code");
+        var need_answer_obj = $("#need_answer");
+        python_modal_obj.hide();
+        scratch_modal_obj.hide();
+        normal_homework_result_obj.hide();
+        run_btn_obj.hide();
+        need_code_obj.val(0);
+        need_answer_obj.val(0);
+
+        function open_detail(eid) {
+            has_comment_obj.hide();
+
+            eid_obj.val(eid);
+            let data = {
+                'user_id': uid_obj.val(),
+                'exercises_id': eid,
+            };
+            $.get('{% url "exercises_detail" %}', data, function (res) {
+                console.log(res);
+                if (res.code == 0) {
+                    let datas = res.result;
+                    exercises_title_obj.html(datas.title);
+                    exercises_content_obj.html(datas.content);
+
+                    if (datas.need_code == 1) {
+                        if (datas.code_language == 'python') {
+                            editor.setValue(datas.default_code);
+                            python_modal_obj.show();
+                            run_btn_obj.show();
+
+                            need_code_obj.val(1);
+                        }
+                    } else {
+                        python_modal_obj.hide();
+                        scratch_modal_obj.hide();
+                        run_btn_obj.hide();
+
+                        need_code_obj.val(0);
+                    }
+
+                    if (datas.need_answer == 1) {
+                        normal_homework_result_obj.show();
+                        normal_homework_result_obj.text(datas.homework_content);
+                        need_answer_obj.val(1);
+                    } else {
+                        normal_homework_result_obj.hide();
+                        need_answer_obj.val(0);
+                    }
+
+                    if (datas.comment) {
+                        has_comment_obj.show();
+                        homework_comment_obj.html(datas.comment);
+                    }
+                    $("#homework_detail").modal('show');
+                } else {
+                    layer.msg(res.msg, {icon: 1, time: 1000});
+                    return false
+                }
+            })
+        }
+
+        // 保存作业
+        function save_code() {
+            let need_code = need_code_obj.val();
+            let need_answer = need_answer_obj.val();
+            let code = editor.getValue();
+            let homework_content = normal_homework_result_obj.val();
+            console.log(code);
+
+            if (need_code == 1 && code.length == 0) {
+                layer.msg("代码为空, 不能保存", {icon: 2, time: 1000});
+                return false
+            }
+            if (need_answer == 1 && homework_content.length == 0) {
+                layer.msg('作业为空, 不能保存', {icon: 2, time: 1000});
+                return false
+            }
+
+            let data = {
+                "code": code,
+                'content': homework_content,
+                "uid": uid_obj.val(),
+                "lid": lid_obj.val(),
+                'eid': eid_obj.val(),
+            };
+            console.log(data);
+            $.post('{% url "homework_code" %}', data, function (res) {
+                console.log(res);
+                let icon = res.code > 0 ? 2 : 1;
+                layer.msg(res.msg, {time: 1000, icon: icon});
+            })
+        }
+
+        function outf(text) {
+            code_result_obj.innerHTML = code_result_obj.innerHTML + text;  //文字输出
+        }
+
+        function builtinRead(x) {
+            if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
+                throw "File not found: '" + x + "'";
+            return Sk.builtinFiles["files"][x];
+        }
+
+        function runit() {
+            console.log("runit is going")
+            //var prog = document.getElementById("yourcode").value; //读取用户输入的内容
+            var prog = editor.getValue(); //读取用户输入的内容
+            //var mypre = document.getElementById("output");   //获取输出框
+            code_result_obj.innerHTML = '';
+            Sk.pre = "output";
+            Sk.configure({output: outf, read: builtinRead, __future__: Sk.python3});
+
+            (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'mycanvas';
+            var myPromise = Sk.misceval.asyncToPromise(function () {
+                return Sk.importMainWithBody("<stdin>", false, prog, true);
+            });
+
+            myPromise.then(function (mod) {
+                    console.log('success');    //执行成功，显示success
+                },
+                function (err) {
+                    console.log(err.toString());   //执行失败，在控制台显示 err
+                });
+        }
+
+    </script>
+{% endblock %}

@@ -135,7 +135,7 @@
                         </div>
                     </div>
 
-                    <button type="button" class="btn btn-primary " onclick="exec_code()" id="run_btn"> 运行</button>
+                    <button type="button" class="btn btn-primary " onclick="runit()" id="run_btn"> 运行</button>
                     <button type="button" class="btn btn-primary" onclick="save_code()"> 保存</button>
                     <!--<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>-->
                 </div>
@@ -143,8 +143,6 @@
             </div>
         </div>
     </div>
-
-
 
 
     <script type="text/javascript" src="{% static '/admin/simpleui-x/automatic/dicts.js' %}"></script>
@@ -162,6 +160,8 @@
     <script type="text/javascript" src="{% static '/js/codemirror5/mode/python/python.js' %}"></script>
     <script type="text/javascript" src="{% static '/js/codemirror5/addon/edit/closetag.js' %}"></script>
     <script type="text/javascript" src="{% static '/js/codemirror5/addon/edit/closebrackets.js' %}"></script>
+    <script src="{% static 'js/skulpt/dist/skulpt.min.js' %}" type="text/javascript"></script>
+    <script src="{% static 'js/skulpt/dist/skulpt-stdlib.js' %}" type="text/javascript"></script>
 
 
     <script type="text/javascript">
@@ -169,7 +169,8 @@
         var lid_obj = $("#lesson_id");
         var eid_obj = $("#exercises_id");
         var homework_code_obj = document.getElementById("homework_code");
-        var code_result_obj = $("#code_result");
+        // var code_result_obj = $("#code_result");
+        var code_result_obj = document.getElementById("code_result");
         var exercises_title_obj = $("#exercises_title");
         var exercises_content_obj = $("#exercises_content");
         var has_comment_obj = $("#has_comment");
@@ -308,6 +309,38 @@
             })
         }
 
+
+        function outf(text) {
+            code_result_obj.innerHTML = code_result_obj.innerHTML + text;  //文字输出
+        }
+
+        function builtinRead(x) {
+            if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
+                throw "File not found: '" + x + "'";
+            return Sk.builtinFiles["files"][x];
+        }
+
+        function runit() {
+            console.log("runit is going")
+            //var prog = document.getElementById("yourcode").value; //读取用户输入的内容
+            var prog = editor.getValue(); //读取用户输入的内容
+            //var mypre = document.getElementById("output");   //获取输出框
+            code_result_obj.innerHTML = '';
+            Sk.pre = "output";
+            Sk.configure({output: outf, read: builtinRead, __future__: Sk.python3});
+
+            (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'mycanvas';
+            var myPromise = Sk.misceval.asyncToPromise(function () {
+                return Sk.importMainWithBody("<stdin>", false, prog, true);
+            });
+
+            myPromise.then(function (mod) {
+                    console.log('success');    //执行成功，显示success
+                },
+                function (err) {
+                    console.log(err.toString());   //执行失败，在控制台显示 err
+                });
+        }
 
     </script>
 

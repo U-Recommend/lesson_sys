@@ -188,6 +188,15 @@ class HomeworkAdmin(admin.ModelAdmin):
 
     created_name.short_description = "保存时间"
 
+    def change_view(self, request, object_id, form_url="", extra_context=None):
+        user = request.user
+        if not user.is_superuser:
+            self.change_form_template = "homework/student_list.html"
+            extra_context = extra_context or {}
+            extra_context['user'] = user
+        return super(HomeworkAdmin, self).change_view(request, object_id, form_url=form_url,
+                                                    extra_context=extra_context)
+
     def has_module_permission(self, request):
         if request.user.is_superuser:
             return True

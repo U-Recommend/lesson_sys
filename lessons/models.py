@@ -39,6 +39,8 @@ class Exercises(MainModel):
     need_code = models.IntegerField('是否需要代码', choices=SUBJECT_HAS_CODE, default=1)
     need_answer = models.IntegerField('是否需要答题', choices=SUBJECT_HAS_CODE, default=1)
     status = models.IntegerField('状态', choices=STATUS, default=1)
+    is_alone = models.IntegerField('是否独立练习', choices=STATUS, default=0)
+    sort = models.IntegerField('排序', default=0, help_text="数字越大越靠后")
 
     def __str__(self):
         return self.title
@@ -57,7 +59,7 @@ class Lesson(MainModel):
     user = models.ManyToManyField(User, related_name='lesson_users')
     exercises = models.ManyToManyField(Exercises, related_name='exercises_lesson', null=True, blank=True)
     is_attendance = models.IntegerField('是否纳入考勤', choices=BOOLEAN_STATUS, default=1)
-    
+
     def __str__(self):
         return self.course.title if self.course else str(self.id)
 

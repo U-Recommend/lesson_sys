@@ -97,7 +97,8 @@ class PythonTrainAdmin(admin.ModelAdmin):
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
         user = request.user
-        self.change_form_template = "python_train/change_form.html"
+        # self.change_form_template = "python_train/change_form.html"
+        self.change_form_template = "python_train/index.html"
         extra_context = extra_context or {}
         train = PythonTrain.objects.filter(id=object_id).first()
         extra_context['user'] = user
@@ -112,7 +113,8 @@ class PythonTrainAdmin(admin.ModelAdmin):
 
     def add_view(self, request, form_url="", extra_context=None):
         user = request.user
-        self.change_form_template = "python_train/change_form.html"
+        # self.change_form_template = "python_train/change_form.html"
+        self.change_form_template = "python_train/index.html"
         extra_context = extra_context or {}
         extra_context['user'] = user
         extra_context['sid'] = ""

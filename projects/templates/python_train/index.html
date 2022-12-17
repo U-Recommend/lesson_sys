@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{% static 'js/bootstrap-select/bootstrap-select.min.css' %}">
     <link rel="stylesheet" href="{% static 'js/codemirror5/lib/codemirror.css' %}">
     <link rel="stylesheet" href="{% static 'js/codemirror5/theme/seti.css' %}">
+
 {% endblock %}
 
 
@@ -33,44 +34,35 @@
 
 {% block content %}
     <div id="content-main">
-
         {% block submit_buttons_bottom %}
             {% submit_row %}
         {% endblock %}
+
         <div>
-            <h3> 课后作业 </h3>
-            <p> {{ homework_subject.content|safe }} </p>
+            <h3> Python练习 </h3>
             <div>
                 <div class="col-md-6">
                     <row>
-                <textarea class="form-control" rows="10" id="homework_code">
+                <textarea class="form-control" rows="10" id="train_code">
 
                 </textarea>
                     </row>
                     <button class="btn btn-primary btn-small" onclick="runit()" style="margin-bottom:10px;">运行
                     </button>
                     <button class="btn btn-small btn-primary" style="margin-bottom:10px;"
-                            onclick="save_code('{{ user.id }}', '{{ homework_subject.id }}')">
+                            onclick="save_code('{{ user.id }}', '{{ sid }}')">
                         保存
                     </button>
                 </div>
                 <div class="col-md-6" style="margin-bottom:10px;">
-                    <pre id="code_result" style="height: 800px;"></pre>
+                    <div id="mycanvas" style="background-color: gray; height: 245px; margin-bottom: 10px;"></div>
+                    <pre id="code_result" style="height: 245px;"></pre>
                 </div>
             </div>
         </div>
-        <div style="margin-top:20px;">
-            {% if comment %}
-                <hr style="margin-top:20px;">
-                <div class="col-md-12">
-                    <h4> 作业评语 </h4>
-                    <p>{{ comment|safe }}</p>
-                </div>
-            {% endif %}
-        </div>
+
 
     </div>
-
 
     <script type="text/javascript" src="{% static '/admin/simpleui-x/automatic/dicts.js' %}"></script>
     <script type="text/javascript" src="{% static '/admin/simpleui-x/automatic/segment.js' %}"></script>
@@ -86,56 +78,32 @@
     <script type="text/javascript" src="{% static '/js/codemirror5/mode/python/python.js' %}"></script>
     <script type="text/javascript" src="{% static '/js/codemirror5/addon/edit/closetag.js' %}"></script>
     <script type="text/javascript" src="{% static '/js/codemirror5/addon/edit/closebrackets.js' %}"></script>
+
     <script src="{% static 'js/skulpt/dist/skulpt.min.js' %}" type="text/javascript"></script>
     <script src="{% static 'js/skulpt/dist/skulpt-stdlib.js' %}" type="text/javascript"></script>
 
 
     <script type="text/javascript">
-        var homework_code = document.getElementById("homework_code");
-        // var code_result_obj = $("#code_result");
+        var train_code_obj = document.getElementById("train_code");
         var code_result_obj = document.getElementById("code_result");
-
+        //var mypre = document.getElementById("output");
         var default_code = `{{code}}`;
 
         $(function () {
             $("#changelist-filter").empty();
         });
 
-
-        var editor = CodeMirror.fromTextArea(homework_code, {
+        var editor = CodeMirror.fromTextArea(train_code_obj, {
             mode: "python",
             lineNumbers: true,
             smartIndent: true,
             tabSize: 4,
             theme: 'seti',
         });
-        editor.setSize(null, 800);
+        editor.setSize(null, 500);
+
         console.log(default_code);
         editor.setValue(default_code);
-
-        function save_code(uid, sid) {
-            let code = editor.getValue();
-            console.log(code);
-
-            if (code.length == 0) {
-                layer.alert("为空");
-                return false
-            }
-            console.log(uid);
-            console.log(sid);
-            let data = {
-                "code": code,
-                "uid": uid,
-                "sid": sid
-            };
-            console.log(data);
-            $.post('{% url "homework_code" %}', data, function (res) {
-                console.log(res);
-                let icon = res.code > 0 ? 2 : 1;
-                layer.msg(res.msg, {time: 1000, icon: icon});
-            })
-        }
-
 
         function outf(text) {
             code_result_obj.innerHTML = code_result_obj.innerHTML + text;  //文字输出
@@ -169,16 +137,29 @@
                 });
         }
 
-        function exec_code() {
+
+        function save_code(uid, sid) {
             let code = editor.getValue();
-            $.post('{% url "compile_code" %}', {'code': code}, function (res) {
+            console.log(code);
+
+            if (code.length == 0) {
+                layer.alert("代码为空");
+                return false
+            }
+            console.log(uid);
+            console.log(sid);
+            let data = {
+                "code": code,
+                "uid": uid,
+                "sid": sid
+            };
+            console.log(data);
+            $.post('{% url "train_code" %}', data, function (res) {
                 console.log(res);
                 let icon = res.code > 0 ? 2 : 1;
                 layer.msg(res.msg, {time: 1000, icon: icon});
-                code_result_obj.text(res.result);
             })
         }
-
 
     </script>
 
