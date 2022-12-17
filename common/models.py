@@ -86,6 +86,11 @@ STATUS = (
     (1, '正常'),
 )
 
+BOOLEAN_STATUS = (
+    (0, '否'),
+    (1, '是'),
+)
+
 
 class Feedback(MainModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)

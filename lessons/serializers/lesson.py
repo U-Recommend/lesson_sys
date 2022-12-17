@@ -26,7 +26,6 @@ def lesson_filter(id=None, user=None, uid=None, status=None, course=None, cid=No
         query = query.filter(course=course)
     if cid:
         query = query.filter(course_id=cid)
-    query = query.order_by('-num')
     return query
 
 

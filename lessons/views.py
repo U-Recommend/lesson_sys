@@ -177,6 +177,8 @@ def attendance_list(request):
             query = query.filter(lesson_date__gte=date__gte)
         if date__lte:
             query = query.filter(lesson_date__lte=date__lte)
+        query = query.filter(is_attendance=1)
+        query = query.order_by('-num')
         data_dict = {}
         try:
             logger.info(query.count())

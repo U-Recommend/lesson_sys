@@ -1,6 +1,6 @@
 from django.db import models
 from ckeditor.fields import RichTextField
-from common.models import MainModel, User, Grade, STATUS
+from common.models import MainModel, User, Grade, STATUS, BOOLEAN_STATUS
 
 CODE_LANGUAGE = (
     ('', '-'),
@@ -56,7 +56,8 @@ class Lesson(MainModel):
     num = models.IntegerField('节次', default=1)
     user = models.ManyToManyField(User, related_name='lesson_users')
     exercises = models.ManyToManyField(Exercises, related_name='exercises_lesson', null=True, blank=True)
-
+    is_attendance = models.IntegerField('是否纳入考勤', choices=BOOLEAN_STATUS, default=1)
+    
     def __str__(self):
         return self.course.title if self.course else str(self.id)
 
