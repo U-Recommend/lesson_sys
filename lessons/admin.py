@@ -141,6 +141,9 @@ class LessonAdmin(admin.ModelAdmin):
         return False
 
 
+from lessons.views import student_homework_list_page
+
+
 class HomeworkAdmin(admin.ModelAdmin):
     list_display = ('id', 'user_name', 'lesson_title', 'exercises_title', 'comment_content', 'created')
     exclude = ('is_deleted',)
@@ -172,13 +175,6 @@ class HomeworkAdmin(admin.ModelAdmin):
 
     comment_content.short_description = "老师评语"
 
-    def get_queryset(self, request):
-        qs = super(HomeworkAdmin, self).get_queryset(request)
-        qs = qs.filter(is_deleted=0)
-        if not request.user.is_superuser:
-            qs = qs.filter(user_id=request.user.id)
-        return qs
-
     def homework_title(self, obj):
         return obj.lesson.title if obj.lesson else ''
 
@@ -188,6 +184,18 @@ class HomeworkAdmin(admin.ModelAdmin):
         return obj.created
 
     created_name.short_description = "保存时间"
+
+    def get_queryset(self, request):
+        qs = super(HomeworkAdmin, self).get_queryset(request)
+        qs = qs.filter(is_deleted=0)
+        if not request.user.is_superuser:
+            qs = qs.filter(user_id=request.user.id)
+        return qs
+
+    def changelist_view(self, request, extra_context=None):
+        if request.user.is_superuser:
+            return super(HomeworkAdmin, self).changelist_view(request, extra_context=extra_context)
+        return lesson_list_page(request)
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
         user = request.user

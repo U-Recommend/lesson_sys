@@ -195,6 +195,16 @@ def attendance_list(request):
         return JsonResponse(data_dict)
 
 
+# 学生端作业列表页面
+def student_homework_list_page(request):
+    if request.method == "GET":
+        user = request.user
+        datas = {
+            'user': user
+        }
+        return render(request, "homework/student_list.html", datas)
+
+
 # 学生端作业列表
 def student_homework_list(request):
     if request.method == "GET":

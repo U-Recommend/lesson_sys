@@ -9,5 +9,6 @@ urlpatterns = [
     path('lesson_list', views.lesson_list, name='lesson_list'),
     path('lesson_status_change', views.lesson_status_change, name='lesson_status_change'),
     path('lesson_delete', views.lesson_delete, name='lesson_delete'),
+    path('student_homework_list', views.student_homework_list, name='student_homework_list'),
 
 ]
