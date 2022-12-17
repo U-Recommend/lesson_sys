@@ -53,6 +53,7 @@ def exercises_data(eid=None, exercises=None, uid=None, lesson_id=None):
 def student_exercises_data(uid=None, exercises=None):
     homework = Homework.objects.filter(is_deleted=0, user_id=uid, exercises_id=exercises.id).first()
     data = {
+        'id': exercises.id,
         'sort': exercises.sort,
         'title': exercises.title or '',
         'homework_status': '否' if not homework else '是',
