@@ -163,7 +163,7 @@
 
         // 保存评语
         function save_comment(uid, hid) {
-            let comment = $("#homework_comment").val();
+            let comment = CKEDITOR.instances['homework_comment'].getData();
             console.log(comment);
 
             if (comment.length == 0) {

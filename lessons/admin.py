@@ -154,6 +154,8 @@ class HomeworkAdmin(admin.ModelAdmin):
     fields = ('user', 'lesson', 'exercises', 'code', 'content', 'comment')
     # readonly_fields = ('user', 'lesson', 'exercises')
     view_on_site = False
+    save_as_continue = False
+    save_as = False
 
     def user_name(self, obj):
         return format_html(obj.user.name)
