@@ -34,9 +34,6 @@
 {% block content %}
     <div id="content-main">
 
-        {% block submit_buttons_bottom %}
-            {% submit_row %}
-        {% endblock %}
         <div>
             <h3> {{ homework.exercises.title|safe }} </h3>
             <p> {{ homework.exercises.content|safe }} </p>
