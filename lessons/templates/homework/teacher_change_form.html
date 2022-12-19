@@ -55,7 +55,7 @@
 
                     </div>
                     <div class="col-md-6" style="margin-bottom:10px;">
-                        <pre id="code_result" style="height: 800px;"></pre>
+                        <pre id="code_result" style="height: 300px;"></pre>
                     </div>
                 </div>
                 </div>
@@ -64,7 +64,8 @@
             <hr style="margin-top:20px;">
             <div class="col-md-12">
                 <h4> 作业评语 </h4>
-                <textarea class="col-md-12" id="homework_comment">{{ homework.comment|safe }}</textarea>
+                <textarea class="col-md-12" id="homework_comment"
+                          name="homework_comment">{{ homework.comment|safe }}</textarea>
                 <button class="btn btn-small btn-primary" style="margin-bottom:10px;"
                         onclick="save_comment('{{ user.id }}', '{{ homework.id }}')">
                     保存
@@ -95,7 +96,7 @@
 
 
     <script type="text/javascript">
-        CKEDITOR.replace('#homework_comment');
+        CKEDITOR.replace('homework_comment');
 
         var homework_code = document.getElementById("homework_code");
         // var code_result_obj = $("#code_result");
