@@ -240,7 +240,8 @@ def student_homework_list(request):
 # 评语提交
 def homework_comment(request):
     if request.method == "POST":
-        req = json.loads(request.body)
+        # req = json.loads(request.body)
+        req = request.POST
         comment = req.get("comment")
         hid = req.get("hid")
         homework = Homework.objects.filter(id=hid).first()
