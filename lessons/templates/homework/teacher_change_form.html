@@ -61,17 +61,15 @@
                 </div>
             {% endif %}
         <div style="margin-top:20px;">
-            {% if comment %}
-                <hr style="margin-top:20px;">
-                <div class="col-md-12">
-                    <h4> 作业评语 </h4>
-                    <textarea class="col-md-12" id="homework_comment">{{ homework.comment|safe }}</textarea>
-                    <button class="btn btn-small btn-primary" style="margin-bottom:10px;"
-                            onclick="save_comment('{{ user.id }}', '{{ homework.id }}')">
-                        保存
-                    </button>
-                </div>
-            {% endif %}
+            <hr style="margin-top:20px;">
+            <div class="col-md-12">
+                <h4> 作业评语 </h4>
+                <textarea class="col-md-12" id="homework_comment">{{ homework.comment|safe }}</textarea>
+                <button class="btn btn-small btn-primary" style="margin-bottom:10px;"
+                        onclick="save_comment('{{ user.id }}', '{{ homework.id }}')">
+                    保存
+                </button>
+            </div>
         </div>
 
     </div>
@@ -117,10 +115,8 @@
             tabSize: 4,
             theme: 'seti',
         });
-        editor.setSize(null, 800);
         console.log(default_code);
         editor.setValue(default_code);
-
 
         function outf(text) {
             code_result_obj.innerHTML = code_result_obj.innerHTML + text;  //文字输出
