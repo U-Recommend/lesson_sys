@@ -245,6 +245,8 @@ def homework_comment(request):
         logger.info(req)
         comment = req.get("comment")
         hid = req.get("hid")
+        logger.info(comment)
+        logger.info(hid)
         homework = Homework.objects.filter(id=hid).first()
         if not homework:
             return common_response(code=20000, message="作业不存在")
