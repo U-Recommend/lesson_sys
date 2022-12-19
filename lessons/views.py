@@ -235,3 +235,17 @@ def student_homework_list(request):
         except Exception as ex:
             logger.exception(ex)
         return JsonResponse(data_dict)
+
+
+# 评语提交
+def homework_comment(request):
+    if request.method == "POST":
+        req = json.loads(request.body)
+        comment = req.get("comment")
+        hid = req.get("hid")
+        homework = Homework.objects.filter(id=hid).first()
+        if not homework:
+            return common_response(code=20000, message="作业不存在")
+        homework.comment = comment
+        homework.save()
+        return common_response(message="评语保存成功")

@@ -199,10 +199,12 @@ class HomeworkAdmin(admin.ModelAdmin):
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
         user = request.user
-        if not user.is_superuser:
-            self.change_form_template = "homework/student_list.html"
+        if user.is_superuser:
+            self.change_form_template = "homework/teacher_change_form.html"
             extra_context = extra_context or {}
             extra_context['user'] = user
+            homework = Homework.objects.filter(id=object_id).first()
+            extra_context['homework'] = homework
         return super(HomeworkAdmin, self).change_view(request, object_id, form_url=form_url,
                                                       extra_context=extra_context)
 

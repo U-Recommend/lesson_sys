@@ -10,5 +10,6 @@ urlpatterns = [
     path('lesson_status_change', views.lesson_status_change, name='lesson_status_change'),
     path('lesson_delete', views.lesson_delete, name='lesson_delete'),
     path('student_homework_list', views.student_homework_list, name='student_homework_list'),
+    path('homework_comment', views.homework_comment, name='homework_comment'),
 
 ]
