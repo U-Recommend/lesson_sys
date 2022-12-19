@@ -210,6 +210,14 @@ class HomeworkAdmin(admin.ModelAdmin):
         return super(HomeworkAdmin, self).change_view(request, object_id, form_url=form_url,
                                                       extra_context=extra_context)
 
+    def render_change_form(self, request, context, add=False, change=False, form_url="", obj=None):
+        context.update({
+            'show_save': False,
+            'show_save_and_continue': False,
+            'show_delete': False
+        })
+        return super(HomeworkAdmin, self).render_change_form(request, context, add, change, form_url, obj)
+
     # def has_module_permission(self, request):
     #     if request.user.is_superuser:
     #         return True
