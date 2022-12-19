@@ -47,7 +47,7 @@ class CourseAdmin(admin.ModelAdmin):
 
 
 class ExercisesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'content', 'need_code', 'need_answer')
+    list_display = ('id', 'title', 'need_code', 'need_answer', 'is_alone', 'created')
     exclude = ('is_deleted',)
     sortable_by = ()
 
