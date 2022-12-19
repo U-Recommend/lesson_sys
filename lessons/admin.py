@@ -34,6 +34,7 @@ class CourseAdmin(admin.ModelAdmin):
     search_fields = ('title',)
     exclude = ('is_deleted',)
     sortable_by = ()
+    list_display_links = ('title',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -50,6 +51,7 @@ class ExercisesAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'need_code', 'need_answer', 'is_alone', 'created')
     exclude = ('is_deleted',)
     sortable_by = ()
+    list_display_links = ('title',)
 
     def get_queryset(self, request):
         qs = super(ExercisesAdmin, self).get_queryset(request)
