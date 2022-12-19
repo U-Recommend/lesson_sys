@@ -242,6 +242,7 @@ def homework_comment(request):
     if request.method == "POST":
         # req = json.loads(request.body)
         req = request.POST
+        logger.info(req)
         comment = req.get("comment")
         hid = req.get("hid")
         homework = Homework.objects.filter(id=hid).first()
