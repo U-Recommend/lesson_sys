@@ -92,7 +92,7 @@
     <script type="text/javascript" src="{% static '/js/codemirror5/addon/edit/closebrackets.js' %}"></script>
     <script src="{% static 'js/skulpt/dist/skulpt.min.js' %}" type="text/javascript"></script>
     <script src="{% static 'js/skulpt/dist/skulpt-stdlib.js' %}" type="text/javascript"></script>
-    <script src="https://cdn.ckeditor.com/4.20.1/standard/ckeditor.js"></script>
+    <script src="https://cdn.ckeditor.com/4.20.1/basic/ckeditor.js"></script>
 
 
     <script type="text/javascript">
@@ -102,7 +102,7 @@
         // var code_result_obj = $("#code_result");
         var code_result_obj = document.getElementById("code_result");
 
-        var default_code = `{{homework.code}}`;
+        var default_code = `{{homework.code |safe}}`;
 
         $(function () {
             $("#changelist-filter").empty();
