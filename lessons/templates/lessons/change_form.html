@@ -206,12 +206,6 @@
         CKEDITOR.replace('lesson_comment_text');
         CKEDITOR.instances['lesson_comment_text'].setData('');
 
-        {% if user.is_superuser %}
-            var is_superuser = true;
-        {% else %}
-            var is_superuser = false;
-        {% endif %}
-
         var uid_obj = $("#user_id");
         var lid_obj = $("#lesson_id");
         var eid_obj = $("#exercises_id");
@@ -406,8 +400,7 @@
                     if (item.user_id == uid_obj.val()) {
                         btn = '<button class="btn btn-sm btn-primary" onclick="lesson_comment_del(\'' + item.id + '\')">删除</button>';
                     }
-                    if (is_superuser)
-                        let html = '<li class="list-group-item">' + user + content + btn + '</li>';
+                    let html = '<li class="list-group-item">' + user + content + btn + '</li>';
                     lesson_comment_list_obj.append(html);
                 })
             })
