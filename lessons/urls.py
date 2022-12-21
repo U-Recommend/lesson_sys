@@ -11,5 +11,6 @@ urlpatterns = [
     path('lesson_delete', views.lesson_delete, name='lesson_delete'),
     path('student_homework_list', views.student_homework_list, name='student_homework_list'),
     path('homework_comment', views.homework_comment, name='homework_comment'),
+    path('lesson_comment_list', views.lesson_comment_list, name='lesson_comment_list'),
 
 ]

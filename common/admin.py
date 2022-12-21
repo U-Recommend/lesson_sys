@@ -93,22 +93,18 @@ from django.contrib.auth.models import Group
 
 admin.site.unregister(Group)
 
+from common.views import feedback_list_page
 
-# todo
+
 class FeedbackAdmin(admin.ModelAdmin):
-    list_display = ('content_data', 'user', 'feedback_data', 'created')
-    search_fields = ('content',)
-    exclude = ('is_deleted',)
-    sortable_by = ()
-    show_full_result_count = False
-    actions_selection_counter = False
 
-    def content_data(self, obj):
-        pass
+    def changelist_view(self, request, extra_context=None):
+        return feedback_list_page(request)
 
 
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Grade, GradeAdmin)
+admin.site.register(Feedback, FeedbackAdmin)
 
 
 class UserFilter(admin.SimpleListFilter):

@@ -1,0 +1,530 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_list simpletags %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/changelists.css' %}?_=20180905"/>
+
+    {% if cl.formset %}
+        <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}"/>
+    {% endif %}
+    {% if cl.formset or action_form %}
+        <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+    {% endif %}
+    {{ media.css }}
+    {% if not actions_on_top and not actions_on_bottom %}
+        <style>
+            #changelist table thead th:first-child {
+                width: inherit
+            }
+        </style>
+    {% endif %}
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    {{ media.js }}
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-list{% endblock %}
+
+{% if not is_popup %}
+    {% block breadcrumbs %}
+        <div class="breadcrumbs">
+            <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+            &rsaquo; <a
+                href="{% url 'admin:app_list' app_label=cl.opts.app_label %}">{{ cl.opts.app_config.verbose_name }}</a>
+            &rsaquo; {{ cl.opts.verbose_name_plural|capfirst }}
+        </div>
+    {% endblock %}
+{% endif %}
+
+{% block coltype %}flex{% endblock %}
+{% block content_title %}
+
+{% endblock %}
+{% block content %}
+    <style>
+        #content {
+            position: relative;
+        }
+
+        .object-tools {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            height: 50px;
+            z-index: 2;
+        }
+
+        .object-tools .import_link, .object-tools .export_link {
+            color: white !important;
+        }
+
+    </style>
+
+    <link rel="stylesheet" href="{% static '/js/bootstrap/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static '/js/datatables/jquery.dataTables.min.css' %}">
+    <link rel="stylesheet" href="{% static '/js/bootstrap-select/bootstrap-select.min.css' %}">
+    <link rel="stylesheet" href="{% static '/js/bootstrap-switch/bootstrap-switch.min.css' %}">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.css">
+
+
+    {% block object-tools %}
+        <ul class="object-tools">
+            {% block object-tools-items %}
+                {% if has_add_permission %}
+                    {{ block.super }}
+                {% endif %}
+            {% endblock %}
+        </ul>
+    {% endblock %}
+
+    <div id="content-main">
+
+    {% if cl.formset.errors %}
+        <p class="errornote">
+            {% if cl.formset.total_error_count == 1 %}{% trans "Please correct the error below." %}{% else %}
+                {% trans "Please correct the errors below." %}{% endif %}
+        </p>
+        {{ cl.formset.non_form_errors }}
+    {% endif %}
+
+
+
+    <div class="module filtered" id="changelist">
+
+        <!-- search_form.html -->
+        <div id="toolbar">
+            <div id="changelist-search">
+                <div class="simpleui-form" style="margin-left: 10px; margin-right: 10px;">
+                    <input type="text" class="" id="filter_content" placeholder="反馈内容">
+
+                    <select id="is_private" class="" style="width: 120px; margin-right: 10px;">
+                        <option value="">是否私信</option>
+                        <option value="0">否</option>
+                        <option value="1">是</option>
+                    </select>
+
+                    <select id="is_feedback" class="" style="width: 120px; margin-right: 10px;">
+                        <option value="">是否回复</option>
+                        <option value="0">否</option>
+                        <option value="1">是</option>
+                    </select>
+                    {% if user.is_superuser %}
+                        <select id="status" class="" style="width: 120px; margin-right: 10px;">
+                            <option value="">状态</option>
+                            <option value="0">否</option>
+                            <option value="1">是</option>
+                        </select>
+                    {% endif %}
+
+                    <div class="el-date-editor el-range-editor el-input__inner simpleui-form-item el-date-editor--daterange el-range-editor--small">
+                        <input autocomplete="off" placeholder="日期" id="date__gte" type="date" name=""
+                               class="el-range-input">
+                        <span class="el-range-separator">-</span>
+                        <input autocomplete="off" placeholder="日期" id="date__lte" type="date" name=""
+                               class="el-range-input">
+                    </div>
+
+                    <button type="button" class="el-button el-button--primary el-button--small"
+                            id="data-search">
+                        <i class="el-icon-search"></i><span>搜索</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="changelist-form">
+            <div class="actions">
+                <button type="button" class="el-button el-button--primary el-button--small"
+                        onclick="new_feedback()">
+                    <span>新增</span>
+                </button>
+            </div>
+
+            <div class="el-row" style="margin-bottom: 20px;">
+                <table class="el-table el-table--border" id="data_list_table">
+                    <thead>
+                    <tr>
+                        <th>用户</th>
+                        <th>内容</th>
+                        <th>是否私密信息</th>
+                        <th>回复</th>
+                        <th>提交时间</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <input type="text" id="feedback_id" hidden>
+    <div class="modal fade" id="feedback_detail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         data-backdrop="static">
+        <div class="modal-dialog " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exercises_title"></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-2">内容</div>
+                        <div class="col-md-9" style="margin-left: 20px;" id="feedback_detail_content"></div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-2">回复</div>
+                        <div class="col-md-9" style="margin-left: 20px;" id="feedback_detail_feedback"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="feedback_edit_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         data-backdrop="static">
+        <div class="modal-dialog " role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exercises_title"></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-2">内容</div>
+                        <div class="col-md-10">
+                            <textarea id="feedback_edit_content" name="feedback_edit_content"></textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2">保密发送</div>
+                        <div class="col-md=10">
+                            <div class="btn-group" style="margin-left: 20px;">
+                                <div class="radio">
+                                    <label>
+                                        <input type="radio" name="feedback_edit_is_private" id="is_private0" value="0">
+                                        公开发送，所有人都可以看到您提交的反馈.
+                                    </label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input type="radio" name="feedback_edit_is_private" id="is_private1" value="1">
+                                        保密发送，只有管理员能看到您提交的反馈.
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if user.is_superuser %}
+                        <textarea id="feedback_content" name="feedback_content"></textarea>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    {% if user.is_superuser %}
+                        <button type="button" class="btn btn-primary" onclick="feedback_content_save()"> 保存</button>
+                    {% else %}
+                        <button type="button" class="btn btn-primary" onclick="feedback_save()"> 保存</button>
+                    {% endif %}
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="text/javascript" src="/static/admin/simpleui-x/automatic/dicts.js"></script>
+    <script type="text/javascript" src="/static/admin/simpleui-x/automatic/segment.js"></script>
+    <script type="text/javascript" src="/static/admin/simpleui-x/js/axios.min.js"></script>
+    <script type="text/javascript" src="/static/js/moment.min.js"></script>
+
+    <script type="text/javascript" src="{% static '/js/bootstrap/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static '/js/layer/2.4/layer.js' %}"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.js"></script>
+    <!-- Latest compiled and minified Locales -->
+    <script src="https://unpkg.com/bootstrap-table@1.21.1/dist/locale/bootstrap-table-zh-CN.min.js"></script>
+    <script type="text/javascript" src="{% static '/js/table_common.js' %}"></script>
+    <script src="https://cdn.ckeditor.com/4.20.1/basic/ckeditor.js"></script>
+
+    <script type="text/javascript">
+        CKEDITOR.replace('feedback_edit_content');
+        CKEDITOR.replace('feedback_content');
+
+        {% if user.is_superuser %}
+            var is_superuser = true;
+        {% else %}
+            var is_superuser = false;
+        {% endif %}
+        var user_id = {{ user.id }};
+        console.log(is_superuser);
+        var feedback_id_obj = $("#feedback_id");
+        var feedback_detail_obj = $("#feedback_detail");
+        var feedback_edit_modal_obj = $("#feedback_edit_modal");
+        var feedback_detail_content_obj = $("#feedback_detail_content");
+        var feedback_detail_feedback_obj = $("#feedback_detail_feedback");
+        var feedback_content_obj = $("#feedback_content");
+        var feedback_edit_content_obj = $("#feedback_edit_content");
+        var feedback_edit_is_private_obj = $(".feedback_edit_is_private");
+        var is_private0_obj = $("#is_private0");
+        var is_private1_obj = $("#is_private1");
+        feedback_id_obj.val("");
+        feedback_detail_obj.hide();
+        feedback_edit_modal_obj.hide();
+
+        var table_obj = $("#data_list_table");
+        var table_setting = {
+            url: '{% url "feedback_list" %}',
+            mehtod: 'GET',
+            queryParams(params) {
+                return {
+                    "draw": params.pageNumber,
+                    "length": params.pageSize,
+                    "filter_content": $("#filter_content").val(),
+                    "is_private": $("#is_private").val(),
+                    "is_feedback": $("#is_feedback").val(),
+                    "status": $("#status").val(),
+                    "date__lte": $("#date__lte").val(),
+                    "date__gte": $("#date__gte").val(),
+                }
+            },
+            columns: [{
+                field: 'user_name',
+                name: 'user_name',
+                title: '用户',
+                align: 'center',
+                sortable: false,
+                width: 10,
+                widthUnit: "%",
+            }, {
+                field: 'content',
+                name: 'content',
+                align: 'center',
+                title: '内容',
+                width: 40,
+                widthUnit: "%",
+                formatter: function (value, row, index) {
+                    let html = '';
+                    html += '<a href="javascript:void(0)" onclick="feedback_detail(' + row.id + ')">' + value + '</a>';
+                    return html
+                }
+            }, {
+                field: 'is_private_name',
+                name: 'is_private_name',
+                title: '信息保护',
+                align: 'center',
+                sortable: false,
+                width: 10,
+                widthUnit: "%",
+            }, {
+                field: 'feedback',
+                name: 'feedback',
+                title: '回复',
+                align: 'center',
+                sortable: false,
+                width: 20,
+                widthUnit: "%",
+            }, {
+                field: 'created',
+                name: 'created',
+                title: '提交时间',
+                align: 'center',
+                sortable: false,
+                width: 10,
+                widthUnit: "%",
+            }, {
+                field: 'id',
+                name: 'id',
+                title: '操作',
+                align: 'center',
+                sortable: false,
+                width: 10,
+                widthUnit: "%",
+                formatter: function (value, row, index) {
+                    let html = '';
+                    html += "<span style='float:right;'>";
+                    html += '<button  style="margin-right:20px;" class="btn btn-default btn-xs" onclick="feedback_detail(\'' + row.id + '\')"><span class="glyphicon glyphicon-book" aria-hidden="true" style="margin-right:5px;"></span>详情</button>';
+
+                    if (user_id == row.user_id) {
+                        if (row.feedback.length < 1) {
+                            html += '<button  style="margin-right:20px;" class="btn btn-default btn-xs" onclick="feedback_edit(\'' + row.id + '\')"><span class="glyphicon glyphicon-book" aria-hidden="true" style="margin-right:5px;"></span>编辑</button>';
+                        }
+                        html += '<button  style="margin-right:10px;" class="btn btn-default btn-xs" onclick="feedback_delete(' + row.id + ', 1)"><span class="glyphicon glyphicon-trash" aria-hidden="true" style="margin-right:5px;"></span>删除</button>';
+                    }
+                    if (is_superuser == true) {
+                        html += '<button  style="margin-right:20px;" class="btn btn-default btn-xs" onclick="feedback_edit(\'' + row.id + '\')"><span class="glyphicon glyphicon-book" aria-hidden="true" style="margin-right:5px;"></span>编辑</button>';
+                        html += '<button  style="margin-right:10px;" class="btn btn-default btn-xs" onclick="feedback_delete(' + row.id + ', 1)"><span class="glyphicon glyphicon-trash" aria-hidden="true" style="margin-right:5px;"></span>删除</button>';
+
+                        let new_status = 1;
+                        let new_status_name = "打开";
+                        if (row.status == 1) {
+                            new_status = 0;
+                            new_status_name = "关闭"
+                        }
+                        html += '<button  style="margin-right:10px;" class="btn btn-default btn-xs" onclick="feedback_status(' + row.id + ', ' + new_status + ')"><span class="glyphicon glyphicon-trash" aria-hidden="true" style="margin-right:5px;"></span>' + new_status_name + '</button>';
+                    }
+                    html += '</span>';
+                    return html;
+                }
+            }],
+
+        };
+        table_setting = $.extend(tableSettings, table_setting);
+        table_obj.bootstrapTable('destroy');
+        table_obj.bootstrapTable(table_setting);
+
+        // 查询搜索结果并充值表格
+        $('#data-search').click(function () {
+            table_obj.bootstrapTable('destroy');
+            table_obj.bootstrapTable(table_setting);
+
+        });
+
+
+        function new_feedback() {
+            console.log("new_feedback")
+            feedback_edit_modal_obj.modal('show');
+            feedback_id_obj.val('');
+            CKEDITOR.instances['feedback_edit_content'].setData('');
+            is_private0_obj.attr('checked', 'checked');
+            is_private1_obj.attr('checked', false);
+        }
+
+        function feedback_detail(id) {
+            feedback_id_obj.val('');
+            feedback_detail_obj.modal('show');
+            $.get('{% url "feedback_detail" %}', {'id': id}, function (res) {
+                if (res.code == 0) {
+                    let data = res.result;
+                    feedback_detail_content_obj.html(data.content);
+                    feedback_detail_feedback_obj.html(data.feedback);
+                }
+            })
+        }
+
+        function feedback_edit(id) {
+            if (is_superuser == true) {
+                CKEDITOR.instances['feedback_content'].setData('');
+            }
+            feedback_edit_modal_obj.modal('show');
+            $.get('{% url "feedback_detail" %}', {'id': id}, function (res) {
+                if (res.code == 0) {
+                    let data = res.result;
+                    feedback_id_obj.val(data.id);
+                    CKEDITOR.instances['feedback_edit_content'].setData(data.content);
+                    let is_private = data.is_private;
+                    if (is_private == 0) {
+                        is_private0_obj.attr('checked', 'checked');
+                        is_private1_obj.attr('checked', false);
+                    } else {
+                        is_private0_obj.attr('checked', false);
+                        is_private1_obj.attr('checked', 'checked');
+                    }
+                    if (is_superuser == true) {
+                        CKEDITOR.instances['feedback_content'].setData(data.feedback);
+                    }
+                }
+            })
+        }
+
+        function feedback_delete(id) {
+            layer.confirm("确定要删除吗?", function (i) {
+                let data = {"id": id};
+                axios.post('{% url "feedback_delete" %}', data).then(res => {
+                    console.log(res.data);
+                    let icon_type = res.data.code === 0 ? 1 : 2;
+                    layer.msg(res.data.msg, {time: 1000, icon: icon_type});
+                    if (res.data.code == 0) {
+                        feedback_id_obj.val('');
+                        layer.close(i);
+                        setTimeout(() => window.location.reload(), 1000)
+                    }
+                })
+            })
+        }
+
+
+        function feedback_status(id, status) {
+            layer.confirm("确定要修改状态吗?", function (i) {
+                let data = {"id": id, 'status': status};
+                console.log(data);
+                axios.post('{% url "feedback_detail" %}', data).then(res => {
+                    console.log(res.data);
+                    let icon_type = res.data.code === 0 ? 1 : 2;
+                    layer.msg(res.data.msg, {time: 1000, icon: icon_type});
+                    if (res.data.code == 0) {
+                        feedback_id_obj.val('');
+                        layer.close(i);
+                        setTimeout(() => window.location.reload(), 1000)
+                    }
+                })
+            })
+        }
+
+        function feedback_content_save() {
+            layer.confirm("确定要更新回复吗?", function (i) {
+                let data = {
+                    "id": feedback_id_obj.val(),
+                    'feedback': CKEDITOR.instances['feedback_content'].getData()
+                };
+                console.log(data);
+                if (data.feedback.length < 1) {
+                    layer.alert('总要写点什么');
+                    return false
+                }
+                axios.post('{% url "feedback_detail" %}', data).then(res => {
+                    console.log(res.data);
+                    let icon_type = res.data.code === 0 ? 1 : 2;
+                    layer.msg(res.data.msg, {time: 1000, icon: icon_type});
+                    if (res.data.code == 0) {
+                        feedback_id_obj.val('');
+                        layer.close(i);
+                        setTimeout(() => window.location.reload(), 1000)
+                    }
+                })
+            })
+        }
+
+        function feedback_save() {
+            layer.confirm("确定要保存反馈吗?", function (i) {
+                let data = {
+                    "id": feedback_id_obj.val(),
+                    'content': CKEDITOR.instances['feedback_edit_content'].getData(),
+                    'is_private': $("input[name='feedback_edit_is_private']:checked").val(),
+                };
+                console.log(data);
+                if (data.content.length < 1) {
+                    layer.alert('总要写点什么');
+                    return false
+                }
+                axios.post('{% url "feedback_list" %}', data).then(res => {
+                    console.log(res.data);
+                    let icon_type = res.data.code === 0 ? 1 : 2;
+                    layer.msg(res.data.msg, {time: 1000, icon: icon_type});
+                    if (res.data.code == 0) {
+                        layer.close(i);
+                        setTimeout(() => window.location.reload(), 1000)
+                    }
+                })
+            })
+        }
+
+
+    </script>
+{% endblock %}

@@ -95,8 +95,9 @@ BOOLEAN_STATUS = (
 class Feedback(MainModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     content = RichTextField('内容', null=True, blank=True)
-    is_public = models.IntegerField("保密信息", choices=((0, "否"), (1, '是')), default=0, help_text="保密信息只有老师能看到")
+    is_private = models.IntegerField("保密信息", choices=((0, "否"), (1, '是')), default=0, help_text="保密信息只有老师能看到")
     feedback = RichTextField('回复', null=True, blank=True)
+    status = models.IntegerField('状态', choices=STATUS, default=1)
 
     def __str__(self):
         return self.user.name

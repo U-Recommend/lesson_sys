@@ -59,6 +59,7 @@ class Lesson(MainModel):
     user = models.ManyToManyField(User, related_name='lesson_users')
     exercises = models.ManyToManyField(Exercises, related_name='exercises_lesson', null=True, blank=True)
     is_attendance = models.IntegerField('是否纳入考勤', choices=BOOLEAN_STATUS, default=1)
+    comment_status = models.IntegerField('是否评论', choices=BOOLEAN_STATUS, default=1)
 
     def __str__(self):
         return self.course.title if self.course else str(self.id)
@@ -90,3 +91,19 @@ class Attendance(MainModel):
     class Meta:
         verbose_name = "考勤"
         verbose_name_plural = verbose_name
+
+
+class LessonComment(MainModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, null=True, blank=True)
+    homework = models.ForeignKey(Homework, on_delete=models.CASCADE, null=True, blank=True)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
+    content = RichTextField('内容', null=True, blank=True)
+
+    def __str__(self):
+        return self.content
+
+    class Meta:
+        verbose_name = "讨论"
+        verbose_name_plural = verbose_name
+

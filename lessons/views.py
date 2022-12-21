@@ -2,12 +2,14 @@ import json
 from django.shortcuts import render
 from django.http import JsonResponse
 from common.utils import common_response, logger, page_calculate
+from common.handle.dirty_word_of_filter.handle import DFAFilter
 from common.models import User, Grade, STATUS
-from lessons.models import Exercises, Homework, Lesson
+from lessons.models import Exercises, Homework, Lesson, LessonComment
 from lessons.serializers.exercises import exercises_filter, exercises_data, student_exercises_data
 from lessons.serializers.homework import stdoutIO, homework_create_or_update
 from lessons.serializers.lesson import lesson_filter, lesson_data
 from lessons.serializers.attendance import attendance_data
+from lessons.serializers.lesson_comment import lesson_comment_filter, lesson_comment_data
 
 
 def exercises_detail(request):
@@ -253,3 +255,28 @@ def homework_comment(request):
         homework.comment = comment
         homework.save()
         return common_response(message="评语保存成功")
+
+
+# 评论列表
+def lesson_comment_list(request):
+    user = request.user
+    if request.method == "GET":
+        lid = request.GET.get('lid')
+        query = lesson_comment_filter(lid=lid)
+        logger.info(query.count())
+        datas = [lesson_comment_data(comment=q) for q in query]
+        return common_response(result=datas)
+    if request.method == "POST":
+        req = request.POST
+        logger.info(req)
+        logger.info(user.id)
+        lid = req.get('lesson_id')
+        content = req.get('content')
+        pid = req.get('pid')
+        # 脏词过滤
+        dirty_word_status = DFAFilter().filter(content)
+        if not dirty_word_status:
+            return common_response(code=20000, message="请重新评论")
+        query = LessonComment(user_id=user.id, lesson_id=lid, parent_id=pid, content=content)
+        query.save()
+        return common_response(message="提交成功")
