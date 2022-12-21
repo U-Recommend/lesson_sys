@@ -428,6 +428,7 @@
                 let icon = res.code > 0 ? 2 : 1;
                 layer.msg(res.msg, {time: 1000, icon: icon});
                 if (res.code == 0) {
+                    CKEDITOR.instances['lesson_comment_text'].setData("");
                     lesson_comment_modal_obj.modal('hide');
                     location.reload();
                 }
@@ -444,9 +445,8 @@
                     let icon_type = res.data.code === 0 ? 1 : 2;
                     layer.msg(res.data.msg, {time: 1000, icon: icon_type});
                     if (res.data.code == 0) {
-                        feedback_id_obj.val('');
                         layer.close(i);
-                        setTimeout(() => window.location.reload(), 1000)
+                        location.reload();
                     }
                 })
             })
