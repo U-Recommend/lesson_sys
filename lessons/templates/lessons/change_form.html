@@ -425,6 +425,7 @@
                 layer.msg(res.msg, {time: 1000, icon: icon});
                 if (res.code == 0) {
                     lesson_comment_modal_obj.modal('hide');
+                    location.reload();
                 }
             })
         }
