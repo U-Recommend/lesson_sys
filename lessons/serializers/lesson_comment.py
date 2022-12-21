@@ -10,8 +10,10 @@ description:
 from lessons.models import LessonComment
 
 
-def lesson_comment_filter(uid=None, lid=None, hid=None, pid=None):
+def lesson_comment_filter(uid=None, lid=None, hid=None, pid=None, id=None):
     query = LessonComment.objects.filter(is_deleted=0)
+    if id:
+        query = query.filter(id=id)
     if uid:
         query = query.filter(user_id=uid)
     if lid:

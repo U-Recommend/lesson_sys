@@ -160,7 +160,7 @@
 
     <div class="modal fade" id="lesson_comment_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
          data-backdrop="static">
-        <div class="modal-dialog" role="document" >
+        <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
@@ -205,6 +205,12 @@
     <script type="text/javascript">
         CKEDITOR.replace('lesson_comment_text');
         CKEDITOR.instances['lesson_comment_text'].setData('');
+
+        {% if user.is_superuser %}
+            var is_superuser = true;
+        {% else %}
+            var is_superuser = false;
+        {% endif %}
 
         var uid_obj = $("#user_id");
         var lid_obj = $("#lesson_id");
@@ -396,7 +402,12 @@
                 $.each(res.result, function (i, item) {
                     let user = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span>' + item.user_name + ':';
                     let content = '<p class="col-md-offset-1">' + item.content + '</p>';
-                    let html = '<li class="list-group-item">' + user + content + '</li>';
+                    let btn = '';
+                    if (item.user_id == uid_obj.val()) {
+                        btn = '<button class="btn btn-sm btn-primary" onclick="lesson_comment_del(\'' + item.id + '\')">删除</button>';
+                    }
+                    if (is_superuser)
+                        let html = '<li class="list-group-item">' + user + content + btn + '</li>';
                     lesson_comment_list_obj.append(html);
                 })
             })
@@ -415,7 +426,7 @@
                 'lesson_id': lid_obj.val(),
             };
             console.log(data);
-            if (data.content.length <1) {
+            if (data.content.length < 1) {
                 layer.alert('评论为空');
                 return false
             }
@@ -427,6 +438,24 @@
                     lesson_comment_modal_obj.modal('hide');
                     location.reload();
                 }
+            })
+        }
+
+        // 删除评论
+        function lesson_comment_del(id) {
+            layer.confirm("确定要删除该评论吗?", function (i) {
+                let data = {"id": id};
+                console.log(data);
+                axios.post('{% url "lesson_comment_delete" %}', data).then(res => {
+                    console.log(res.data);
+                    let icon_type = res.data.code === 0 ? 1 : 2;
+                    layer.msg(res.data.msg, {time: 1000, icon: icon_type});
+                    if (res.data.code == 0) {
+                        feedback_id_obj.val('');
+                        layer.close(i);
+                        setTimeout(() => window.location.reload(), 1000)
+                    }
+                })
             })
         }
 

@@ -280,3 +280,12 @@ def lesson_comment_list(request):
         query = LessonComment(user_id=user.id, lesson_id=lid, parent_id=pid, content=content)
         query.save()
         return common_response(message="提交成功")
+
+
+# 删除评论
+def lesson_comment_delete(request):
+    if request.method == "POST":
+        req = json.loads(request.body)
+        id = req.get('id')
+        lesson_comment_filter(id=id).delete()
+        return common_response()
