@@ -6,6 +6,7 @@ from common.utils import common_response, logger, page_calculate
 from common.handle.dirty_word_of_filter.handle import DFAFilter
 from common.models import Feedback
 from common.serializers.feedback import feedback_filter, feedback_data
+from common.serializers.weather import get_weather
 
 
 def feedback_list_page(request):
@@ -113,3 +114,9 @@ def feedback_delete(request):
                 return common_response(code=20000, message="无操作权限")
         feedback.delete()
         return common_response()
+
+
+def get_weather_data(request):
+    if request.method == "GET":
+        data = get_weather()
+        return common_response(result=data)
