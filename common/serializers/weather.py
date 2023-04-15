@@ -40,9 +40,13 @@ def get_weather():
     '''读取天气文件'''
     with open(WEATHER_DATA_FILE, 'r') as f:
         data = json.load(f)
+        logger.info(data)
         org_now = data.get('now')
         now = int(time.time())
-        if (now - int(org_now)) / 60 * 60 < 1:
+        delta = (now - int(org_now)) / (60 * 60)
+        logger.info(delta)
+        if delta < 1:
+            logger.info('ddddd')
             return data
         data = set_weather()
         return data
