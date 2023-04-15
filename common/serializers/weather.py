@@ -61,7 +61,7 @@ def get_weather():
                 "pressure": "987",  # 气压
                 "humidity": "27%"  # 湿度
             }
-        org_now = data.get('now')
+        org_now = data.get('now', 0)
         now = int(time.time())
         delta = (now - int(org_now)) / (60 * 60)
         logger.info(delta)
