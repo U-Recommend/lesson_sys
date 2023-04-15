@@ -59,7 +59,8 @@ def get_weather():
                 "win_meter": "19km\/h",  # 风速
                 "air": "53",  # 空气质量
                 "pressure": "987",  # 气压
-                "humidity": "27%"  # 湿度
+                "humidity": "27%",  # 湿度,
+                'now': int(time.time()) - 100
             }
         org_now = data.get('now', 0)
         now = int(time.time())
