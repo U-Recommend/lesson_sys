@@ -9,8 +9,10 @@ description:
 """
 import os
 import json
+import time
 import requests
 from django.conf import settings
+from common.utils import logger
 
 # 定义常量
 APP_ID = "27537238"
@@ -23,19 +25,24 @@ def set_weather(city="杭州"):
     '''天气任务'''
     # 请求天气数据
     url = f"https://www.yiketianqi.com/free/day?appid={APP_ID}&appsecret={APP_SECRET}&unescape=1&city={city}"
-    print(url)
+    logger.info(url)
     resp = requests.get(url)
     # 解析天气数据
     result = resp.json()
-    print(result)
+    logger.info(result)
+    result['now'] = int(time.time())
     with open(WEATHER_DATA_FILE, 'w') as f:
         json.dump(result, f)
+    return result
 
 
 def get_weather():
     '''读取天气文件'''
-    if not os.path.exists(WEATHER_DATA_FILE):
-        set_weather()
     with open(WEATHER_DATA_FILE, 'r') as f:
         data = json.load(f)
+        org_now = data.get('now')
+        now = int(time.time())
+        if (now - int(org_now)) / 60 * 60 < 1:
+            return data
+        data = set_weather()
         return data
