@@ -37,7 +37,7 @@ def set_weather(city="杭州"):
     return result
 
 
-def get_weather():
+def get_weather(wtype=None):
     '''读取天气文件'''
     with open(WEATHER_DATA_FILE, 'r') as f:
         data = json.load(f)
@@ -69,6 +69,6 @@ def get_weather():
         logger.info(delta)
         if delta < 1:
             logger.info('ddddd')
-            return data
+            return data.get(wtype, '')
         data = set_weather()
-        return data
+        return data.get(wtype, '')

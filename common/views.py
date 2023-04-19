@@ -118,5 +118,6 @@ def feedback_delete(request):
 
 def get_weather_data(request):
     if request.method == "GET":
-        data = get_weather()
-        return common_response(result=data)
+        wtype = request.GET.get('wtype')
+        data = get_weather(wtype=wtype)
+        return common_response(result=str(data))
