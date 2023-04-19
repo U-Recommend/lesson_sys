@@ -32,6 +32,7 @@ def set_weather(city="杭州"):
     logger.info(result)
     result['now'] = int(time.time())
     with open(WEATHER_DATA_FILE, 'w') as f:
+        logger.info('write')
         json.dump(result, f)
     return result
 
@@ -41,27 +42,27 @@ def get_weather():
     with open(WEATHER_DATA_FILE, 'r') as f:
         data = json.load(f)
         logger.info(data)
-        if not data.get('city'):
-            data = {
-                "nums": 226,  # 今日实时请求次数
-                "cityid": "101120101",  # 城市ID
-                "city": "济南",
-                "date": "2022-05-05",
-                "week": "星期四",
-                "update_time": "22:38",  # 更新时间
-                "wea": "多云",  # 天气情况
-                "wea_img": "yun",  # 天气标识
-                "tem": "25",  # 实况温度
-                "tem_day": "30",  # 白天温度(高温)
-                "tem_night": "23",  # 夜间温度(低温)
-                "win": "南风",  # 风向
-                "win_speed": "3级",  # 风力
-                "win_meter": "19km\/h",  # 风速
-                "air": "53",  # 空气质量
-                "pressure": "987",  # 气压
-                "humidity": "27%",  # 湿度,
-                'now': int(time.time()) - 100
-            }
+        # if not data.get('city'):
+        #     data = {
+        #         "nums": 226,  # 今日实时请求次数
+        #         "cityid": "101120101",  # 城市ID
+        #         "city": "济南",
+        #         "date": "2022-05-05",
+        #         "week": "星期四",
+        #         "update_time": "22:38",  # 更新时间
+        #         "wea": "多云",  # 天气情况
+        #         "wea_img": "yun",  # 天气标识
+        #         "tem": "25",  # 实况温度
+        #         "tem_day": "30",  # 白天温度(高温)
+        #         "tem_night": "23",  # 夜间温度(低温)
+        #         "win": "南风",  # 风向
+        #         "win_speed": "3级",  # 风力
+        #         "win_meter": "19km\/h",  # 风速
+        #         "air": "53",  # 空气质量
+        #         "pressure": "987",  # 气压
+        #         "humidity": "27%",  # 湿度,
+        #         'now': int(time.time()) - 100
+        #     }
         org_now = data.get('now', 0)
         now = int(time.time())
         delta = (now - int(org_now)) / (60 * 60)
