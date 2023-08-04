@@ -6,7 +6,7 @@ from common.utils import common_response, logger, page_calculate
 from common.handle.dirty_word_of_filter.handle import DFAFilter
 from common.models import Feedback
 from common.serializers.feedback import feedback_filter, feedback_data
-from common.serializers.weather import get_weather
+from common.serializers.weather import get_weather, get_weather_json
 
 
 def feedback_list_page(request):
@@ -121,3 +121,9 @@ def get_weather_data(request):
         wtype = request.GET.get('wtype')
         data = get_weather(wtype=wtype)
         return common_response(result=str(data))
+
+
+def weather_data(request):
+    if request.method == "GET":
+        data = get_weather_json()
+        return JsonResponse(data)

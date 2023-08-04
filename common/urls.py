@@ -7,5 +7,6 @@ urlpatterns = [
     path('feedback_delete', views.feedback_delete, name='feedback_delete'),
 
     path('get_weather_data', views.get_weather_data, name='get_weather_data'),
+    path('weather_data', views.weather_data, name='weather_data'),
 
 ]

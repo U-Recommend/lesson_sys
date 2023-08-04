@@ -68,7 +68,20 @@ def get_weather(wtype=None):
         delta = (now - int(org_now)) / (60 * 60)
         logger.info(delta)
         if delta < 1:
-            logger.info('ddddd')
             return data.get(wtype, '')
         data = set_weather()
         return data.get(wtype, '')
+
+def get_weather_json():
+    '''读取天气文件'''
+    with open(WEATHER_DATA_FILE, 'r') as f:
+        data = json.load(f)
+        logger.info(data)
+        org_now = data.get('now', 0)
+        now = int(time.time())
+        delta = (now - int(org_now)) / (60 * 60)
+        logger.info(delta)
+        if delta < 1:
+            return data
+        data = set_weather()
+        return data
